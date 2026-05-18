@@ -1,3 +1,4 @@
+/* Colores corporativos D1 */
 :root { 
     --d1-red: #e30613; 
     --d1-blue: #005696; 
@@ -7,10 +8,9 @@ body {
     background-color: #888; 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
     margin: 0;
-    overflow-x: hidden;
 }
 
-/* --- Pantalla de Acceso (Login y Registro) --- */
+/* Pantalla de Acceso */
 #auth-container { 
     height: 100vh; 
     display: flex; 
@@ -23,14 +23,13 @@ body {
     padding: 2.5rem; 
     border-radius: 30px; 
     width: 90%; 
-    max-width: 480px; 
+    max-width: 450px; 
     text-align: center; 
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
-.login-logo { width: 120px; margin-bottom: 15px; }
+.login-logo { width: 100px; margin-bottom: 15px; }
 
-/* Mensaje de Bienestar */
 .bienestar-contenedor h5 {
     font-style: italic; 
     color: var(--d1-blue);
@@ -39,7 +38,7 @@ body {
     padding-bottom: 5px;
 }
 
-/* --- Dashboard y Menú Principal --- */
+/* Dashboard */
 .navbar-d1 { 
     background-color: var(--d1-red); 
     border-bottom: 5px solid var(--d1-blue); 
@@ -49,65 +48,25 @@ body {
 .sidebar { 
     background: white; 
     min-height: 100vh; 
-    border-right: 1px solid #ddd;
 }
 
 .nav-link { 
     color: #333; 
     font-weight: bold; 
-    border-radius: 10px; 
-    margin-bottom: 8px; 
-    display: flex; 
-    align-items: center; 
-    transition: 0.3s;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
     padding: 12px;
+    margin-bottom: 5px;
+    border-radius: 10px;
+    text-align: left;
+    width: 100%;
+    display: block;
+    text-decoration: none;
 }
 
-.nav-link:hover { 
-    background-color: #f1f1f1; 
-    transform: translateX(5px); 
-    color: var(--d1-red);
-}
+.nav-link:hover { background-color: #f1f1f1; color: var(--d1-red); }
+.nav-link.active { background-color: var(--d1-blue) !important; color: white !important; }
 
-.nav-link.active { 
-    background-color: var(--d1-blue) !important; 
-    color: white !important; 
-}
+.btn-d1 { background-color: var(--d1-red); color: white; font-weight: bold; border: none; padding: 10px; }
+.btn-d1:hover { background-color: #b3050f; color: white; }
 
-/* --- Componentes --- */
-.btn-d1 { 
-    background-color: var(--d1-red); 
-    color: white; 
-    font-weight: bold; 
-    border: none; 
-}
-
-.btn-d1:hover { 
-    background-color: #b3050f; 
-    color: white; 
-}
-
-.welcome-banner { 
-    background: var(--d1-blue); 
-    color: white; 
-    border-radius: 15px; 
-    padding: 30px; 
-}
-
+.welcome-banner { background: var(--d1-blue); color: white; border-radius: 15px; padding: 25px; }
 .d1-blue-text { color: var(--d1-blue); }
-
-/* Animación de entrada de contenido */
-.content-view { 
-    animation: fadeInUp 0.4s ease forwards; 
-}
-
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.status-box { transition: 0.3s; cursor: default; }
