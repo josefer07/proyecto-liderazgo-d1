@@ -26,7 +26,6 @@ body {
 
 .login-logo { width: 110px; margin-bottom: 15px; }
 
-/* Estilo para la frase de bienestar */
 .bienestar-contenedor h5 {
     font-style: italic;
     color: var(--d1-blue);
@@ -41,3 +40,13 @@ body {
 
 .navbar-d1 { background-color: var(--d1-red); border-bottom: 4px solid var(--d1-blue); }
 .welcome-banner { background: var(--d1-blue); color: white; border-radius: 15px; }
+
+/* NUEVOS ESTILOS PARA EL MENÚ */
+.nav-link { 
+    color: #333; 
+    font-weight: 500; 
+    transition: 0.3s;
+    border: none !important;
+}
+.nav-link:hover { background-color: #f8f9fa; color: var(--d1-red); }
+.nav-link.active { background-color: var(--d1-blue) !important; color: white !important; }
