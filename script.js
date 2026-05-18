@@ -1,51 +1,58 @@
-// Esperar a que cargue el documento
 document.addEventListener('DOMContentLoaded', function() {
     const loginSec = document.getElementById('login-section');
     const regSec = document.getElementById('register-section');
-    
-    // Botones para cambiar de vista
-    document.getElementById('btn-ir-a-registro').addEventListener('click', function() {
-        loginSec.style.display = 'none';
-        regSec.style.display = 'block';
-    });
 
-    document.getElementById('btn-ir-a-login').addEventListener('click', function() {
-        regSec.style.display = 'none';
-        loginSec.style.display = 'block';
-    });
-
-    // Simulación de "Base de Datos"
-    let usuarios = {
-        "jose": { nombre: "Jose Calderin", rol: "Supervisor", pass: "1234" }
+    // 1. CARGAR USUARIOS EXISTENTES (O crear una lista vacía)
+    // Esto recupera los datos guardados en el navegador
+    let usuariosGuardados = JSON.parse(localStorage.getItem('usuariosD1')) || {
+        "jose": { nombre: "Jose Calderin", rol: "Supervisor / Jefe de Tienda", pass: "1234" }
     };
 
-    // Registro de nuevo usuario
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
+    // 2. LÓGICA DE NAVEGACIÓN (Botones para cambiar de vista)
+    document.getElementById('btn-ir-a-registro').onclick = () => {
+        loginSec.style.display = 'none';
+        regSec.style.display = 'block';
+    };
+
+    document.getElementById('btn-ir-a-login').onclick = () => {
+        regSec.style.display = 'none';
+        loginSec.style.display = 'block';
+    };
+
+    // 3. LÓGICA DE REGISTRO
+    document.getElementById('registerForm').onsubmit = (e) => {
         e.preventDefault();
         const n = document.getElementById('regName').value;
         const u = document.getElementById('regUser').value;
         const p = document.getElementById('regPass').value;
         const r = document.getElementById('regRole').value;
 
-        usuarios[u] = { nombre: n, rol: r, pass: p };
-        alert("¡Cuenta creada! Ya puedes iniciar sesión.");
+        // Guardar nuevo usuario en el objeto
+        usuariosGuardados[u] = { nombre: n, rol: r, pass: p };
+        
+        // GUARDAR EN LOCALSTORAGE (Persistencia real)
+        localStorage.setItem('usuariosD1', JSON.stringify(usuariosGuardados));
+
+        alert("¡Registro exitoso! Ya puedes ingresar con tu usuario.");
         regSec.style.display = 'none';
         loginSec.style.display = 'block';
-    });
+    };
 
-    // Login
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
+    // 4. LÓGICA DE LOGIN
+    document.getElementById('loginForm').onsubmit = (e) => {
         e.preventDefault();
         const u = document.getElementById('loginUser').value;
         const p = document.getElementById('loginPass').value;
 
-        if (usuarios[u] && usuarios[u].pass === p) {
-            document.getElementById('display-name').innerText = `¡Hola, Bienvenido, ${usuarios[u].nombre}!`;
-            document.getElementById('display-role').innerText = `Rol: ${usuarios[u].rol}`;
+        // Verificar si el usuario existe y la contraseña coincide
+        if (usuariosGuardados[u] && usuariosGuardados[u].pass === p) {
+            document.getElementById('display-name').innerText = `¡Bienvenido, ${usuariosGuardados[u].nombre}!`;
+            document.getElementById('display-role').innerText = usuariosGuardados[u].rol;
+            
             document.getElementById('auth-container').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
         } else {
-            alert("Usuario o contraseña incorrectos");
+            alert("Error: Usuario o contraseña incorrectos.");
         }
-    });
+    };
 });
