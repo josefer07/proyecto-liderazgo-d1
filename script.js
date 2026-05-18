@@ -1,55 +1,51 @@
-// Función para cambiar entre Login y Registro
-function toggleAuth() {
+// Esperar a que cargue el documento
+document.addEventListener('DOMContentLoaded', function() {
     const loginSec = document.getElementById('login-section');
     const regSec = document.getElementById('register-section');
     
-    if (loginSec.style.display === "none") {
-        loginSec.style.display = "block";
-        regSec.style.display = "none";
-    } else {
-        loginSec.style.display = "none";
-        regSec.style.display = "block";
-    }
-}
+    // Botones para cambiar de vista
+    document.getElementById('btn-ir-a-registro').addEventListener('click', function() {
+        loginSec.style.display = 'none';
+        regSec.style.display = 'block';
+    });
 
-// Simulación de Base de Datos para el Prototipo
-let usuarios = {
-    "jose": { nombre: "Jose Calderin", rol: "Supervisor / Jefe de Tienda" }
-};
+    document.getElementById('btn-ir-a-login').addEventListener('click', function() {
+        regSec.style.display = 'none';
+        loginSec.style.display = 'block';
+    });
 
-// Lógica de Registro
-document.getElementById('registerForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const nombre = document.getElementById('regName').value;
-    const user = document.getElementById('regUser').value;
-    const rol = document.getElementById('regRole').value;
-    
-    usuarios[user] = { nombre: nombre, rol: rol };
-    alert("¡Usuario creado con éxito! Ahora inicia sesión.");
-    toggleAuth();
+    // Simulación de "Base de Datos"
+    let usuarios = {
+        "jose": { nombre: "Jose Calderin", rol: "Supervisor", pass: "1234" }
+    };
+
+    // Registro de nuevo usuario
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const n = document.getElementById('regName').value;
+        const u = document.getElementById('regUser').value;
+        const p = document.getElementById('regPass').value;
+        const r = document.getElementById('regRole').value;
+
+        usuarios[u] = { nombre: n, rol: r, pass: p };
+        alert("¡Cuenta creada! Ya puedes iniciar sesión.");
+        regSec.style.display = 'none';
+        loginSec.style.display = 'block';
+    });
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const u = document.getElementById('loginUser').value;
+        const p = document.getElementById('loginPass').value;
+
+        if (usuarios[u] && usuarios[u].pass === p) {
+            document.getElementById('display-name').innerText = `¡Hola, Bienvenido, ${usuarios[u].nombre}!`;
+            document.getElementById('display-role').innerText = `Rol: ${usuarios[u].rol}`;
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+        } else {
+            alert("Usuario o contraseña incorrectos");
+        }
+    });
 });
-
-// Lógica de Login
-document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const user = document.getElementById('loginUser').value;
-    
-    if (usuarios[user]) {
-        document.getElementById('display-name').innerText = `¡Hola, Bienvenido, ${usuarios[user].nombre}!`;
-        document.getElementById('display-role').innerText = usuarios[user].rol;
-        
-        document.getElementById('auth-container').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-    } else {
-        alert("Usuario no encontrado. Por favor, regístrate primero.");
-    }
-});
-
-// Navegación del Dashboard
-function showTab(view) {
-    document.querySelectorAll('.content-view').forEach(v => v.style.display = 'none');
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    
-    document.getElementById('view-' + view).style.display = 'block';
-    event.currentTarget.classList.add('active');
-}
