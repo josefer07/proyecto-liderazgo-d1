@@ -1,92 +1,67 @@
-:root { 
-    --d1-red: #e30613; 
-    --d1-blue: #005696; 
+// FUNCIÓN PARA CAMBIAR ENTRE PESTAÑAS
+function showTab(view, event) {
+    // Ocultar todas las vistas
+    document.querySelectorAll('.content-view').forEach(v => v.style.display = 'none');
+    // Quitar clase active de los botones
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    // Mostrar la vista seleccionada
+    document.getElementById('view-' + view).style.display = 'block';
+    // Marcar botón actual como activo
+    if (event) {
+        event.currentTarget.classList.add('active');
+    }
 }
 
-/* Fondo de la página en Blanco para legibilidad */
-body { 
-    background-color: #ffffff; 
-    font-family: 'Segoe UI', sans-serif; 
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const loginSec = document.getElementById('login-section');
+    const regSec = document.getElementById('register-section');
 
-/* Auth Container sigue igual para resaltar el login */
-#auth-container { 
-    height: 100vh; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    background-color: #f4f4f4; 
-}
+    // 1. CARGAR USUARIOS EXISTENTES
+    let usuariosGuardados = JSON.parse(localStorage.getItem('usuariosD1')) || {
+        "jose": { nombre: "Jose Calderin", rol: "Supervisor / Jefe de Tienda", pass: "1234" }
+    };
 
-.auth-card { 
-    background: white; 
-    padding: 2.5rem; 
-    border-radius: 30px; 
-    width: 90%; 
-    max-width: 480px; 
-    text-align: center; 
-}
+    // 2. NAVEGACIÓN LOGIN / REGISTRO
+    document.getElementById('btn-ir-a-registro').onclick = () => {
+        loginSec.style.display = 'none';
+        regSec.style.display = 'block';
+    };
 
-.login-logo { width: 110px; margin-bottom: 15px; }
+    document.getElementById('btn-ir-a-login').onclick = () => {
+        regSec.style.display = 'none';
+        loginSec.style.display = 'block';
+    };
 
-.bienestar-contenedor h5 {
-    font-style: italic;
-    color: var(--d1-blue);
-    border-bottom: 3px solid var(--d1-red);
-    display: inline-block;
-    padding-bottom: 5px;
-}
+    // 3. LÓGICA DE REGISTRO
+    document.getElementById('registerForm').onsubmit = (e) => {
+        e.preventDefault();
+        const n = document.getElementById('regName').value;
+        const u = document.getElementById('regUser').value;
+        const p = document.getElementById('regPass').value;
+        const r = document.getElementById('regRole').value;
 
-/* Navbar: Letras blancas, más grandes y botón a la derecha */
-.navbar-d1 { 
-    background-color: var(--d1-red); 
-    border-bottom: 4px solid var(--d1-blue); 
-}
+        usuariosGuardados[u] = { nombre: n, rol: r, pass: p };
+        localStorage.setItem('usuariosD1', JSON.stringify(usuariosGuardados));
 
-/* Título más grande y forzado a blanco */
-.navbar-brand {
-    font-size: 2.5rem !important;
-    color: white !important;
-}
+        alert("¡Registro exitoso! Ya puedes ingresar con tu usuario.");
+        regSec.style.display = 'none';
+        loginSec.style.display = 'block';
+    };
 
-/* Botón de cierre separado a la derecha */
-.btn-logout {
-    margin-left: auto;
-}
+    // 4. LÓGICA DE LOGIN
+    document.getElementById('loginForm').onsubmit = (e) => {
+        e.preventDefault();
+        const u = document.getElementById('loginUser').value;
+        const p = document.getElementById('loginPass').value;
 
-.d1-blue-text { color: var(--d1-blue); }
-.btn-d1 { background-color: var(--d1-red); color: white; font-weight: bold; border: none; }
-.btn-d1:hover { background-color: #b3050f; color: white; }
-
-/* Banner de bienvenida (más compacto y arriba) */
-.welcome-banner { 
-    background: var(--d1-blue); 
-    color: white; 
-    border-radius: 15px; 
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-}
-
-/* Estilos de navegación */
-.nav-link { 
-    color: #333; 
-    font-weight: 500; 
-    transition: 0.3s;
-    border: none !important;
-}
-.nav-link:hover { background-color: #e9ecef; color: var(--d1-red); }
-.nav-link.active { background-color: var(--d1-blue) !important; color: white !important; }
-
-.content-view {
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-/* Menú lateral sin altura excesiva */
-.sidebar-nav {
-    min-height: auto;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+        if (usuariosGuardados[u] && usuariosGuardados[u].pass === p) {
+            document.getElementById('display-name').innerText = `¡Bienvenido, ${usuariosGuardados[u].nombre}!`;
+            document.getElementById('display-role').innerText = usuariosGuardados[u].rol;
+            
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+        } else {
+            alert("Error: Usuario o contraseña incorrectos.");
+        }
+    };
+});
