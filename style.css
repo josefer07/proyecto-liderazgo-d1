@@ -3,16 +3,19 @@
     --d1-blue: #005696; 
 }
 
+/* Fondo de la página en Blanco para legibilidad */
 body { 
-    background-color: #888; 
+    background-color: #ffffff; 
     font-family: 'Segoe UI', sans-serif; 
 }
 
+/* Auth Container sigue igual para resaltar el login */
 #auth-container { 
     height: 100vh; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
+    background-color: #f4f4f4; 
 }
 
 .auth-card { 
@@ -34,19 +37,43 @@ body {
     padding-bottom: 5px;
 }
 
+/* Navbar: Letras blancas, más grandes y botón a la derecha */
+.navbar-d1 { 
+    background-color: var(--d1-red); 
+    border-bottom: 4px solid var(--d1-blue); 
+}
+
+.navbar-brand {
+    font-size: 1.8rem !important;
+}
+
 .d1-blue-text { color: var(--d1-blue); }
 .btn-d1 { background-color: var(--d1-red); color: white; font-weight: bold; border: none; }
 .btn-d1:hover { background-color: #b3050f; color: white; }
 
-.navbar-d1 { background-color: var(--d1-red); border-bottom: 4px solid var(--d1-blue); }
-.welcome-banner { background: var(--d1-blue); color: white; border-radius: 15px; }
+/* Banner de bienvenida (más compacto y arriba) */
+.welcome-banner { 
+    background: var(--d1-blue); 
+    color: white; 
+    border-radius: 15px; 
+    margin-top: 0;
+}
 
-/* NUEVOS ESTILOS PARA EL MENÚ */
+/* Estilos de navegación */
 .nav-link { 
     color: #333; 
     font-weight: 500; 
     transition: 0.3s;
     border: none !important;
 }
-.nav-link:hover { background-color: #f8f9fa; color: var(--d1-red); }
+.nav-link:hover { background-color: #e9ecef; color: var(--d1-red); }
 .nav-link.active { background-color: var(--d1-blue) !important; color: white !important; }
+
+.content-view {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
