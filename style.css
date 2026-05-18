@@ -1,43 +1,37 @@
-:root { 
-    --d1-red: #e30613; 
-    --d1-blue: #005696; 
+
+.sidebar {
+    background: white;
+    min-height: calc(100vh - 70px);
 }
 
-body { 
-    background-color: #888; 
-    font-family: 'Segoe UI', sans-serif; 
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    border-radius: 10px;
+    transition: all 0.3s;
 }
 
-#auth-container { 
-    height: 100vh; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
+.nav-link:hover {
+    background-color: #f1f1f1;
+    transform: translateX(5px);
 }
 
-.auth-card { 
-    background: white; 
-    padding: 2.5rem; 
-    border-radius: 30px; 
-    width: 90%; 
-    max-width: 480px; 
-    text-align: center; 
+.material-icons {
+    font-size: 20px;
 }
 
-.login-logo { width: 110px; margin-bottom: 15px; }
-
-/* Estilo para la frase de bienestar */
-.bienestar-contenedor h5 {
-    font-style: italic;
-    color: var(--d1-blue);
-    border-bottom: 3px solid var(--d1-red);
-    display: inline-block;
-    padding-bottom: 5px;
+.table thead {
+    background-color: var(--d1-blue);
+    color: white;
 }
 
-.d1-blue-text { color: var(--d1-blue); }
-.btn-d1 { background-color: var(--d1-red); color: white; font-weight: bold; border: none; }
-.btn-d1:hover { background-color: #b3050f; color: white; }
+.content-view {
+    animation: fadeIn 0.5s ease;
+}
 
-.navbar-d1 { background-color: var(--d1-red); border-bottom: 4px solid var(--d1-blue); }
-.welcome-banner { background: var(--d1-blue); color: white; border-radius: 15px; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
