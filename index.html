@@ -44,17 +44,15 @@
 </div>
 
 <div id="dashboard" style="display:none;">
-    <nav class="navbar navbar-d1 shadow-sm">
-        <div class="container-fluid d-flex justify-content-between align-items-center py-2 px-4">
-            <span class="h2 mb-0 fw-bold text-white">TIENDAS D1</span>
-            <button class="btn btn-outline-light fw-bold" onclick="location.reload()">CERRAR SESIÓN</button>
-        </div>
-    </nav>
+    <header class="navbar-d1 d-flex align-items-center justify-content-between px-4 py-3 shadow-sm">
+        <h1 class="text-white fw-bold m-0" style="font-size: 1.8rem;">TIENDAS D1</h1>
+        <button class="btn btn-outline-light fw-bold" onclick="location.reload()">CERRAR SESIÓN</button>
+    </header>
 
-    <div class="container-fluid">
-        <div class="row">
-            <nav class="col-md-3 col-lg-2 bg-light border-end p-0" style="min-height: 100vh;">
-                <div class="nav flex-column nav-pills p-3">
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <nav class="col-md-3 col-lg-2 bg-light border-end" style="min-height: calc(100vh - 75px);">
+                <div class="nav flex-column nav-pills p-3 mt-2">
                     <button class="nav-link active mb-2 text-start d-flex align-items-center" onclick="showTab('home', event)">
                         <span class="material-icons me-2">dashboard</span> PANEL
                     </button>
@@ -70,17 +68,16 @@
             <main class="col-md-9 col-lg-10 p-4">
                 
                 <div id="view-home" class="content-view">
-                    <div class="welcome-banner shadow-sm p-4 mb-4">
-                        <h2 id="display-name" class="fw-bold mb-1"></h2>
-                        <span id="display-role" class="badge bg-white text-primary px-3 py-2"></span>
+                    <div class="welcome-banner shadow-sm p-4 mb-4 mt-0">
+                        <h2 id="display-name" class="fw-bold mb-1 m-0 text-white"></h2>
+                        <span id="display-role" class="badge bg-white text-primary px-3 py-2 mt-2"></span>
                     </div>
                     <div class="card p-4 border-0 shadow-sm border-top border-danger border-5">
                         <h4 class="fw-bold d1-blue-text">Semáforo Laboral</h4>
-                        <p class="text-muted">Estado actual de la tienda basado en auditorías.</p>
-                        <div class="row g-2 text-center text-white fw-bold">
-                            <div class="col-4"><div class="p-3 bg-success rounded">ÓPTIMO</div></div>
-                            <div class="col-4" style="opacity: 0.3;"><div class="p-3 bg-warning text-dark rounded">RIESGO</div></div>
-                            <div class="col-4" style="opacity: 0.3;"><div class="p-3 bg-danger rounded">CRÍTICO</div></div>
+                        <div class="row g-2 text-center text-white fw-bold mt-3">
+                            <div class="col-4"><div class="p-3 bg-success rounded shadow-sm">ÓPTIMO</div></div>
+                            <div class="col-4" style="opacity: 0.3;"><div class="p-3 bg-warning text-dark rounded shadow-sm">RIESGO</div></div>
+                            <div class="col-4" style="opacity: 0.3;"><div class="p-3 bg-danger rounded shadow-sm">CRÍTICO</div></div>
                         </div>
                     </div>
                 </div>
@@ -107,8 +104,8 @@
                     <div class="card p-4 border-0 shadow-sm border-top border-warning border-5">
                         <h4 class="fw-bold d1-blue-text text-center mb-3">CANAL ÉTICO</h4>
                         <div class="col-md-8 mx-auto">
-                            <textarea class="form-control mb-3" id="denuncia-texto" rows="5" placeholder="Escriba aquí su reporte..."></textarea>
-                            <button class="btn btn-d1 w-100 py-2" onclick="alert('Reporte enviado con éxito')">ENVIAR REPORTE</button>
+                            <textarea class="form-control mb-3" id="denuncia-texto" rows="5" placeholder="Reporte anónimo..."></textarea>
+                            <button class="btn btn-d1 w-100 py-2" onclick="alert('Reporte enviado')">ENVIAR</button>
                         </div>
                     </div>
                 </div>
