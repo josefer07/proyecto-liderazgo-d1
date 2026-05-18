@@ -6,151 +6,56 @@
     <title>Líder Responsable 360° | D1</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <style>
-        :root { --d1-red: #e30613; --d1-blue: #005696; --d1-yellow: #ffcb05; }
-        body { background-color: #f4f4f4; font-family: 'Arial', sans-serif; }
-        
-        /* Navbar Tematizada D1 */
-        .navbar-d1 { background-color: var(--d1-red); color: white; border-bottom: 4px solid var(--d1-blue); }
-        .sidebar { background: white; min-height: 100vh; border-right: 3px solid var(--d1-blue); }
-        
-        .nav-link { color: #333; font-weight: 600; padding: 15px; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; }
-        .nav-link:hover { background-color: #eee; color: var(--d1-red); }
-        .nav-link.active { background-color: var(--d1-blue); color: white !important; }
-        
-        .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-top: 5px solid var(--d1-red); }
-        .welcome-banner { background: linear-gradient(90deg, var(--d1-blue) 0%, #003d6b 100%); color: white; border-radius: 15px; padding: 25px; margin-bottom: 30px; }
-        
-        .btn-d1 { background-color: var(--d1-red); color: white; font-weight: bold; }
-        .btn-d1:hover { background-color: #b3050f; color: white; }
-        
-        .status-light { height: 20px; width: 20px; border-radius: 50%; display: inline-block; margin-right: 10px; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<nav class="navbar navbar-d1 px-4 py-2">
-    <span class="navbar-brand mb-0 h1 text-white">TIENDAS D1 - Gestión de Liderazgo</span>
-    <span class="badge bg-white text-dark">Módulo: Jefe de Tienda / Supervisor</span>
-</nav>
-
-<div class="container-fluid">
-    <div class="row">
-        <nav class="col-md-2 d-none d-md-block sidebar p-3">
-            <div class="text-center mb-4">
-                <div class="p-2 bg-light rounded shadow-sm">
-                    <h6 class="m-0" style="color: var(--d1-blue);">LÍDER 360°</h6>
-                </div>
+<div id="login-container">
+    <div class="login-card">
+        <h3 class="fw-bold" style="color: var(--d1-blue);">INICIAR SESIÓN</h3>
+        <p class="text-muted small">Programa Líder Responsable 360°</p>
+        <form id="loginForm">
+            <div class="mb-3 text-start">
+                <label class="form-label small fw-bold">Nombre de Usuario</label>
+                <input type="text" id="userInput" class="form-control" placeholder="Ej: Abel Polo" required>
             </div>
-            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                <button class="nav-link active w-100 text-start" id="tab-home" data-bs-toggle="pill" data-bs-target="#content-home"><span class="material-icons align-middle me-2">dashboard</span> Panel Principal</button>
-                <button class="nav-link w-100 text-start" id="tab-edu" data-bs-toggle="pill" data-bs-target="#content-edu"><span class="material-icons align-middle me-2">school</span> Capacitación</button>
-                <button class="nav-link w-100 text-start" id="tab-audit" data-bs-toggle="pill" data-bs-target="#content-audit"><span class="material-icons align-middle me-2">fact_check</span> Auditorías</button>
-                <button class="nav-link w-100 text-start text-danger" id="tab-canal" data-bs-toggle="pill" data-bs-target="#content-canal"><span class="material-icons align-middle me-2">gavel</span> Canal Ético</button>
+            <div class="mb-3 text-start">
+                <label class="form-label small fw-bold">Rol en Tienda</label>
+                <select id="roleInput" class="form-select">
+                    <option value="Trabajador">Colaborador Operativo</option>
+                    <option value="Supervisor">Jefe de Tienda / Supervisor</option>
+                </select>
             </div>
-        </nav>
-
-        <main class="col-md-10 p-4">
-            <div class="tab-content" id="v-pills-tabContent">
-                
-                <div class="tab-pane fade show active" id="content-home">
-                    <div class="welcome-banner shadow">
-                        <h2>¡Hola, Bienvenido, Abel Polo!</h2>
-                        <p class="mb-0">Tu gestión hoy construye la cultura de respeto y eficiencia en Tiendas D1.</p>
-                    </div>
-
-                    <div class="row g-4">
-                        <div class="col-md-8">
-                            <div class="card card-custom p-4">
-                                <h5 class="fw-bold"><span class="material-icons align-middle">traffic</span> Semáforo Laboral - Estado de Tienda</h5>
-                                <p class="text-muted small">Basado en la última auditoría sorpresa de la Semana 4[cite: 72, 75].</p>
-                                <div class="alert alert-success d-flex align-items-center">
-                                    <span class="status-light bg-success"></span>
-                                    <strong>ESTADO VERDE:</strong> Clima laboral óptimo y cumplimiento de derechos.
-                                </div>
-                                <div class="mt-3">
-                                    <h6>Próximas Actividades[cite: 62]:</h6>
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item"><span class="material-icons text-primary align-middle small">event</span> Semana 7: Rotación de roles operativos[cite: 78].</li>
-                                        <li class="list-group-item"><span class="material-icons text-primary align-middle small">event</span> Semana 8: Diseño del Plan de Mejora por tienda[cite: 81].</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card card-custom p-4 h-100">
-                                <h5 class="fw-bold">Indicadores Clave [cite: 85]</h5>
-                                <div class="mb-3">
-                                    <label class="small fw-bold">Empatía del Líder</label>
-                                    <div class="progress"><div class="progress-bar bg-primary" style="width: 85%">85%</div></div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="small fw-bold">Clima Laboral (360°)</label>
-                                    <div class="progress"><div class="progress-bar bg-success" style="width: 92%">92%</div></div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="small fw-bold">Atención de Denuncias</label>
-                                    <div class="progress"><div class="progress-bar bg-danger" style="width: 100%">100%</div></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="content-canal">
-                    <div class="card card-custom p-5 text-center">
-                        <span class="material-icons text-danger" style="font-size: 60px;">security</span>
-                        <h2 class="mt-3 fw-bold">Canal de Denuncias Confidencial</h2>
-                        <p class="text-muted">Espacio seguro para reportar situaciones de abuso, acoso o incumplimiento de derechos laborales.</p>
-                        <hr>
-                        <div class="row justify-content-center">
-                            <div class="col-md-6">
-                                <form>
-                                    <div class="mb-3 text-start">
-                                        <label class="form-label">Tipo de Reporte</label>
-                                        <select class="form-select">
-                                            <option>Acoso Laboral</option>
-                                            <option>Sobrecarga de funciones</option>
-                                            <option>Irregularidad Ética</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3 text-start">
-                                        <label class="form-label">Descripción de los hechos</label>
-                                        <textarea class="form-control" rows="4" placeholder="Su reporte será tratado con total anonimato y respeto..."></textarea>
-                                    </div>
-                                    <button type="button" class="btn btn-d1 w-100 py-2">ENVIAR REPORTE ANÓNIMO</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="content-edu">
-                    <div class="card card-custom p-4">
-                        <h3>Módulo de Formación [cite: 32]</h3>
-                        <p>Desarrollo de liderazgo ético y conocimiento de derechos laborales[cite: 37, 46].</p>
-                        <div class="row mt-4">
-                            <div class="col-md-6">
-                                <div class="border p-3 rounded mb-3">
-                                    <h6>Taller: Liderazgo Ético</h6>
-                                    <button class="btn btn-sm btn-outline-primary">Ver contenido</button>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="border p-3 rounded mb-3">
-                                    <h6>Simulación: Casos Reales</h6>
-                                    <button class="btn btn-sm btn-outline-primary">Iniciar Simulador</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </main>
+            <button type="submit" class="btn btn-d1 w-100 py-2 mt-3 shadow-sm">INGRESAR</button>
+        </form>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.bundle.min.js"></script>
+<div id="dashboard" style="display:none;">
+    <nav class="navbar navbar-d1 px-4 py-2 d-flex justify-content-between text-white">
+        <span class="h1 mb-0">TIENDAS D1</span>
+        <button class="btn btn-light btn-sm fw-bold" onclick="location.reload()">Salir</button>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 sidebar p-3">
+                <div class="nav flex-column nav-pills mt-4">
+                    <button class="nav-link active" onclick="showTab('home')">Panel</button>
+                    <button class="nav-link" onclick="showTab('canal')">Canal Ético</button>
+                </div>
+            </nav>
+            <main class="col-md-10 p-4">
+                <div id="welcome-area" class="welcome-banner shadow">
+                    <div class="user-badge" id="display-role"></div>
+                    <h2 id="display-name"></h2>
+                    <p>Líder Responsable 360°: Estrategia de control y bienestar[cite: 27].</p>
+                </div>
+                </main>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
