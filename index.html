@@ -44,15 +44,17 @@
 </div>
 
 <div id="dashboard" style="display:none;">
-    <header class="navbar-d1 d-flex align-items-center justify-content-between px-4 py-3 shadow-sm">
-        <h1 class="text-white fw-bold m-0" style="font-size: 1.8rem;">TIENDAS D1</h1>
-        <button class="btn btn-outline-light fw-bold" onclick="location.reload()">CERRAR SESIÓN</button>
-    </header>
+    <nav class="navbar navbar-d1 px-4 py-3 shadow-sm">
+        <div class="container-fluid d-flex align-items-center">
+            <span class="navbar-brand h1 mb-0 fw-bold fs-2">TIENDAS D1</span>
+            <button class="btn btn-outline-light fw-bold btn-logout" onclick="location.reload()">CERRAR SESIÓN</button>
+        </div>
+    </nav>
 
-    <div class="container-fluid p-0">
-        <div class="row g-0">
-            <nav class="col-md-3 col-lg-2 bg-light border-end" style="min-height: calc(100vh - 75px);">
-                <div class="nav flex-column nav-pills p-3 mt-2">
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 bg-light border-end p-3 sidebar-nav" style="min-height: auto;">
+                <div class="nav flex-column nav-pills mt-2">
                     <button class="nav-link active mb-2 text-start d-flex align-items-center" onclick="showTab('home', event)">
                         <span class="material-icons me-2">dashboard</span> PANEL
                     </button>
@@ -65,16 +67,17 @@
                 </div>
             </nav>
 
-            <main class="col-md-9 col-lg-10 p-4">
+            <main class="col-md-9 col-lg-10 pt-2 pb-2 pe-4 ps-4">
                 
                 <div id="view-home" class="content-view">
-                    <div class="welcome-banner shadow-sm p-4 mb-4 mt-0">
-                        <h2 id="display-name" class="fw-bold mb-1 m-0 text-white"></h2>
-                        <span id="display-role" class="badge bg-white text-primary px-3 py-2 mt-2"></span>
+                    <div class="welcome-banner shadow-sm p-4 mb-2">
+                        <h2 id="display-name" class="fw-bold mb-1"></h2>
+                        <span id="display-role" class="badge bg-white text-primary px-3 py-2"></span>
                     </div>
                     <div class="card p-4 border-0 shadow-sm border-top border-danger border-5">
                         <h4 class="fw-bold d1-blue-text">Semáforo Laboral</h4>
-                        <div class="row g-2 text-center text-white fw-bold mt-3">
+                        <p class="text-muted">Estado actual de la tienda basado en el cumplimiento de indicadores.</p>
+                        <div class="row g-2 text-center text-white fw-bold">
                             <div class="col-4"><div class="p-3 bg-success rounded shadow-sm">ÓPTIMO</div></div>
                             <div class="col-4" style="opacity: 0.3;"><div class="p-3 bg-warning text-dark rounded shadow-sm">RIESGO</div></div>
                             <div class="col-4" style="opacity: 0.3;"><div class="p-3 bg-danger rounded shadow-sm">CRÍTICO</div></div>
@@ -88,11 +91,11 @@
                         <div class="table-responsive">
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
-                                    <tr><th>Actividad</th><th>Indicador</th><th>Método</th></tr>
+                                    <tr><th>Actividad</th><th>Indicador</th><th>Método de Evaluación</th></tr>
                                 </thead>
                                 <tbody>
                                     <tr><td>Taller Liderazgo</td><td>Nivel de conocimiento</td><td>Prueba escrita</td></tr>
-                                    <tr><td>Auditorías</td><td>Cumplimiento normas</td><td>Lista chequeo</td></tr>
+                                    <tr><td>Auditorías</td><td>Cumplimiento normas</td><td>Lista de chequeo</td></tr>
                                     <tr><td>Evaluación 360</td><td>Satisfacción equipo</td><td>Encuesta anónima</td></tr>
                                 </tbody>
                             </table>
@@ -102,10 +105,11 @@
 
                 <div id="view-canal" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-warning border-5">
-                        <h4 class="fw-bold d1-blue-text text-center mb-3">CANAL ÉTICO</h4>
+                        <h4 class="fw-bold d1-blue-text text-center mb-3">CANAL DE DENUNCIAS CONFIDENCIAL</h4>
+                        <p class="text-center text-muted">Utilice este medio para reportar situaciones de abuso o acoso de forma anónima.</p>
                         <div class="col-md-8 mx-auto">
-                            <textarea class="form-control mb-3" id="denuncia-texto" rows="5" placeholder="Reporte anónimo..."></textarea>
-                            <button class="btn btn-d1 w-100 py-2" onclick="alert('Reporte enviado')">ENVIAR</button>
+                            <textarea class="form-control mb-3" id="denuncia-texto" rows="6" placeholder="Describa la situación detalladamente..."></textarea>
+                            <button class="btn btn-d1 w-100 py-2" onclick="alert('Reporte enviado con éxito bajo estrictos protocolos de confidencialidad.')">ENVIAR REPORTE</button>
                         </div>
                     </div>
                 </div>
