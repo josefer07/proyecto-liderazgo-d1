@@ -3,19 +3,18 @@
     --d1-blue: #005696; 
 }
 
-/* Fondo de la página en Blanco para legibilidad */
 body { 
     background-color: #ffffff; 
     font-family: 'Segoe UI', sans-serif; 
+    margin: 0;
 }
 
-/* Auth Container sigue igual para resaltar el login */
 #auth-container { 
     height: 100vh; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    background-color: #f4f4f4; 
+    background-color: #f8f9fa; 
 }
 
 .auth-card { 
@@ -37,43 +36,42 @@ body {
     padding-bottom: 5px;
 }
 
-/* Navbar: Letras blancas, más grandes y botón a la derecha */
+/* Navbar corregida */
 .navbar-d1 { 
     background-color: var(--d1-red); 
     border-bottom: 4px solid var(--d1-blue); 
 }
 
-.navbar-brand {
-    font-size: 1.8rem !important;
+.d1-blue-text { color: var(--d1-blue); }
+
+.btn-d1 { 
+    background-color: var(--d1-red); 
+    color: white; 
+    font-weight: bold; 
+    border: none; 
 }
 
-.d1-blue-text { color: var(--d1-blue); }
-.btn-d1 { background-color: var(--d1-red); color: white; font-weight: bold; border: none; }
 .btn-d1:hover { background-color: #b3050f; color: white; }
 
-/* Banner de bienvenida (más compacto y arriba) */
+/* Banner de bienvenida pegado arriba */
 .welcome-banner { 
     background: var(--d1-blue); 
     color: white; 
-    border-radius: 15px; 
-    margin-top: 0;
+    border-radius: 15px;
+    margin-top: 0; 
 }
 
-/* Estilos de navegación */
+/* Menú lateral */
 .nav-link { 
     color: #333; 
     font-weight: 500; 
-    transition: 0.3s;
     border: none !important;
 }
-.nav-link:hover { background-color: #e9ecef; color: var(--d1-red); }
+
+.nav-link:hover { background-color: #f1f1f1; color: var(--d1-red); }
 .nav-link.active { background-color: var(--d1-blue) !important; color: white !important; }
 
-.content-view {
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Contenido */
+main {
+    padding-top: 20px !important;
 }
