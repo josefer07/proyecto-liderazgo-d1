@@ -3,49 +3,90 @@
     --d1-blue: #005696; 
 }
 
-/* Fondo Blanco */
+/* Fondo de la página en Blanco para legibilidad */
 body { 
-    background-color: #ffffff !important; 
+    background-color: #ffffff; 
     font-family: 'Segoe UI', sans-serif; 
-    margin: 0;
-    padding: 0;
 }
 
+/* Auth Container sigue igual para resaltar el login */
 #auth-container { 
     height: 100vh; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    background-color: #f8f9fa; 
+    background-color: #f4f4f4; 
 }
 
-/* Barra Roja Superior FORZADA */
+.auth-card { 
+    background: white; 
+    padding: 2.5rem; 
+    border-radius: 30px; 
+    width: 90%; 
+    max-width: 480px; 
+    text-align: center; 
+}
+
+.login-logo { width: 110px; margin-bottom: 15px; }
+
+.bienestar-contenedor h5 {
+    font-style: italic;
+    color: var(--d1-blue);
+    border-bottom: 3px solid var(--d1-red);
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+/* Navbar: Letras blancas, más grandes y botón a la derecha */
 .navbar-d1 { 
-    background-color: var(--d1-red) !important; 
-    border-bottom: 4px solid var(--d1-blue);
-    width: 100%;
+    background-color: var(--d1-red); 
+    border-bottom: 4px solid var(--d1-blue); 
 }
 
-/* Título en Blanco FORZADO */
-.navbar-d1 h1 {
-    color: #ffffff !important;
+/* Título más grande y forzado a blanco */
+.navbar-brand {
+    font-size: 2.5rem !important;
+    color: white !important;
+}
+
+/* Botón de cierre separado a la derecha */
+.btn-logout {
+    margin-left: auto;
 }
 
 .d1-blue-text { color: var(--d1-blue); }
-.btn-d1 { background-color: var(--d1-red); color: white; border: none; }
+.btn-d1 { background-color: var(--d1-red); color: white; font-weight: bold; border: none; }
+.btn-d1:hover { background-color: #b3050f; color: white; }
 
-/* Eliminar espacio arriba en el contenido */
-main {
-    margin-top: 0 !important;
-    padding-top: 20px !important;
-}
-
+/* Banner de bienvenida (más compacto y arriba) */
 .welcome-banner { 
-    background: var(--d1-blue) !important; 
-    color: white !important; 
-    border-radius: 15px;
-    margin-top: 0 !important;
+    background: var(--d1-blue); 
+    color: white; 
+    border-radius: 15px; 
+    margin-top: 0;
+    margin-bottom: 0.5rem;
 }
 
+/* Estilos de navegación */
+.nav-link { 
+    color: #333; 
+    font-weight: 500; 
+    transition: 0.3s;
+    border: none !important;
+}
+.nav-link:hover { background-color: #e9ecef; color: var(--d1-red); }
 .nav-link.active { background-color: var(--d1-blue) !important; color: white !important; }
-.nav-link { color: #333; }
+
+.content-view {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Menú lateral sin altura excesiva */
+.sidebar-nav {
+    min-height: auto;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
