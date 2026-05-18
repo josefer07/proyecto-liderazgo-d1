@@ -1,31 +1,28 @@
-:root { 
-    --d1-red: #e30613; 
-    --d1-blue: #005696; 
+// Manejo de vistas de Login/Registro
+function toggleAuth() {
+    const login = document.getElementById('login-section');
+    const register = document.getElementById('register-section');
+    login.style.display = login.style.display === 'none' ? 'block' : 'none';
+    register.style.display = register.style.display === 'none' ? 'block' : 'none';
 }
 
-#login-container { 
-    height: 100vh; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    background: linear-gradient(135deg, var(--d1-red) 50%, var(--d1-blue) 50%); 
+// Lógica de Login
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const user = document.getElementById('loginUser').value;
+    
+    // Simulación de acceso exitoso
+    document.getElementById('display-name').innerText = `¡Hola, Bienvenido, ${user}!`;
+    document.getElementById('nav-user-greeting').innerText = `Usuario: ${user}`;
+    
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+});
+
+// Navegación del menú
+function showTab(view) {
+    document.querySelectorAll('.content-view').forEach(v => v.style.display = 'none');
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    document.getElementById('view-' + view).style.display = 'block';
+    event.currentTarget.classList.add('active');
 }
-
-.login-card { 
-    background: white; 
-    padding: 40px; 
-    border-radius: 20px; 
-    width: 100%; 
-    max-width: 400px; 
-}
-
-.navbar-d1 { background-color: var(--d1-red); border-bottom: 4px solid var(--d1-blue); }
-
-.welcome-banner { 
-    background: var(--d1-blue); 
-    color: white; 
-    padding: 25px; 
-    border-radius: 15px; 
-}
-
-.btn-d1 { background-color: var(--d1-red); color: white; }
