@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Líder Responsable 360° | Tiendas D1</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root { --d1-red: #e30613; --d1-blue: #005696; }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { background: white; min-height: 100vh; border-right: 1px solid #dee2e6; }
+        .nav-link { color: #333; margin: 10px 0; display: flex; align-items: center; }
+        .nav-link:hover, .nav-link.active { color: var(--d1-red); font-weight: bold; }
+        .card-stat { border-radius: 15px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .status-dot { height: 25px; width: 25px; border-radius: 50%; display: inline-block; }
+        .bg-success { background-color: #28a745 !important; }
+        .bg-warning { background-color: #ffc107 !important; }
+        .bg-danger { background-color: #dc3545 !important; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-2 d-none d-md-block sidebar p-3">
+            <h5 class="text-center mb-4" style="color: var(--d1-blue);">Líder 360°</h5>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link active" href="#"><span class="material-icons me-2">dashboard</span> Panel Principal</a></li>
+                <li class="nav-item"><a class="nav-link" href="#"><span class="material-icons me-2">school</span> Capacitación</a></li>
+                <li class="nav-item"><a class="nav-link" href="#"><span class="material-icons me-2">assignment_turned_in</span> Auditorías</a></li>
+                <li class="nav-item"><a class="nav-link" href="#"><span class="material-icons me-2">report_problem</span> Canal Ético</a></li>
+            </ul>
+        </nav>
+
+        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Dashboard de Gestión - Tiendas D1</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <span class="badge bg-primary p-2">Población: Jefes de Tienda y Supervisores</span>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card card-stat p-3 text-center border-start border-primary border-5">
+                        <h6>Formación</h6>
+                        <p class="small text-muted">Liderazgo ético y derechos laborales[cite: 32].</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-stat p-3 text-center border-start border-danger border-5">
+                        <h6>Control</h6>
+                        <p class="small text-muted">Auditorías y evaluaciones constantes[cite: 33].</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-stat p-3 text-center border-start border-success border-5">
+                        <h6>Cultura</h6>
+                        <p class="small text-muted">Respeto y bienestar laboral[cite: 34].</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card card-stat p-4 mb-4">
+                        <h5>Semáforo Laboral de la Tienda [cite: 52]</h5>
+                        <hr>
+                        <div class="d-flex align-items-center justify-content-around py-3">
+                            <div class="text-center">
+                                <div class="status-dot bg-success mb-2"></div>
+                                <p>Óptimo</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="status-dot bg-warning opacity-25 mb-2"></div>
+                                <p class="text-muted">Riesgo</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="status-dot bg-danger opacity-25 mb-2"></div>
+                                <p class="text-muted">Crítico</p>
+                            </div>
+                        </div>
+                        <p class="text-muted small italic">Última actualización: Basada en Auditoría Sorpresa de Semana 4[cite: 72].</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card card-stat p-4">
+                        <h5>Plan de Acción </h5>
+                        <ul class="list-group list-group-flush mt-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Taller Ético <span class="badge bg-success rounded-pill">Hecho</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Evaluación 360° <span class="badge bg-warning rounded-pill">Pendiente</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Rotación de Roles <span class="badge bg-secondary rounded-pill">Semana 7</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-12">
+                    <div class="card card-stat p-4">
+                        <h5>Matriz de Indicadores de Éxito [cite: 85]</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover mt-3">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Actividad</th>
+                                        <th>Indicador</th>
+                                        <th>Método de Evaluación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Taller</td><td>Nivel de conocimiento</td><td>Prueba y participación </td></tr>
+                                    <tr><td>Auditorías</td><td>Cumplimiento normas</td><td>Lista de chequeo </td></tr>
+                                    <tr><td>Canal de denuncias</td><td>Reportes atendidos</td><td>Registro interno </td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.bundle.min.js"></script>
+</body>
+</html>
