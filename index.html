@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Programa Líder Responsable | Tiendas D1</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,7 +15,7 @@
         
         <div class="bienestar-contenedor mb-4">
             <h5 class="fw-bold d1-blue-text">Nos importa tu bienestar</h5>
-            <p class="text-muted small">Tu seguridad y equilibrio son nuestra prioridad.</p>
+            <p class="text-muted small">Programa Líder Responsable: Tu seguridad es nuestra prioridad.</p>
         </div>
 
         <div id="login-section">
@@ -24,9 +23,9 @@
             <form id="loginForm">
                 <input type="text" id="loginUser" class="form-control mb-3" placeholder="Usuario" required>
                 <input type="password" id="loginPass" class="form-control mb-3" placeholder="Contraseña" required>
-                <button type="submit" class="btn btn-d1 w-100 py-2">INGRESAR</button>
+                <button type="submit" class="btn btn-d1 w-100">INGRESAR</button>
             </form>
-            <button class="btn btn-link btn-sm mt-3" id="btn-ir-a-register">¿No tienes cuenta? Regístrate aquí</button>
+            <button class="btn btn-link btn-sm mt-3" id="btn-ir-a-registro">¿No tienes cuenta? Regístrate aquí</button>
         </div>
 
         <div id="register-section" style="display:none;">
@@ -39,7 +38,7 @@
                     <option value="Trabajador Operativo">Trabajador Operativo</option>
                     <option value="Supervisor / Jefe de Tienda">Supervisor / Jefe de Tienda</option>
                 </select>
-                <button type="submit" class="btn btn-d1 w-100 py-2">REGISTRARSE</button>
+                <button type="submit" class="btn btn-d1 w-100">REGISTRARSE</button>
             </form>
             <button class="btn btn-link btn-sm mt-3" id="btn-ir-a-login">Volver al Inicio</button>
         </div>
@@ -53,80 +52,14 @@
         </div>
         <button class="btn btn-outline-light btn-sm fw-bold" onclick="location.reload()">CERRAR SESIÓN</button>
     </nav>
-
-    <div class="container-fluid">
-        <div class="row">
-            <nav class="col-md-3 col-lg-2 sidebar p-3 shadow-sm">
-                <div class="nav flex-column nav-pills mt-4">
-                    <button class="nav-link active mb-2" onclick="showTab('home', event)">
-                        <span class="material-icons me-2">dashboard</span> PANEL
-                    </button>
-                    <button class="nav-link mb-2" onclick="showTab('indicadores', event)">
-                        <span class="material-icons me-2">analytics</span> INDICADORES
-                    </button>
-                    <button class="nav-link mb-2" onclick="showTab('canal', event)">
-                        <span class="material-icons me-2">gavel</span> CANAL ÉTICO
-                    </button>
-                </div>
-            </nav>
-
-            <main class="col-md-9 col-lg-10 p-4">
-                
-                <div id="view-home" class="content-view">
-                    <div class="welcome-banner shadow-sm mb-4">
-                        <h2 id="display-name" class="fw-bold"></h2>
-                        <span id="display-role" class="badge bg-white text-primary p-2"></span>
-                        <p class="mt-3 mb-0">Programa Líder Responsable: Estrategia de control y cultura laboral.</p>
-                    </div>
-                    
-                    <div class="card p-4 border-0 shadow-sm border-top border-danger border-5">
-                        <h4 class="fw-bold d1-blue-text">Semáforo Laboral</h4>
-                        <p class="text-muted">Estado de bienestar basado en auditorías de la Semana 4.</p>
-                        <div class="row g-3 text-center text-white">
-                            <div class="col-md-4"><div class="p-3 bg-success rounded shadow-sm">ÓPTIMO (Verde)</div></div>
-                            <div class="col-md-4 opacity-25"><div class="p-3 bg-warning text-dark rounded shadow-sm">RIESGO (Amarillo)</div></div>
-                            <div class="col-md-4 opacity-25"><div class="p-3 bg-danger rounded shadow-sm">CRÍTICO (Rojo)</div></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="view-indicadores" class="content-view" style="display:none;">
-                    <div class="card p-4 border-0 shadow-sm border-top border-primary border-5">
-                        <h4 class="fw-bold d1-blue-text mb-4">Matriz de Indicadores de Éxito</h4>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Actividad</th>
-                                        <th>Indicador</th>
-                                        <th>Método de Evaluación</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td>Taller</td><td>Nivel de conocimiento adquirido</td><td>Prueba y participación</td></tr>
-                                    <tr><td>Auditorías</td><td>Cumplimiento de normas</td><td>Lista de chequeo</td></tr>
-                                    <tr><td>Semáforo laboral</td><td>Clasificación de tiendas</td><td>Reporte mensual</td></tr>
-                                    <tr><td>Evaluación 360°</td><td>Nivel de satisfacción</td><td>Encuesta anónima</td></tr>
-                                    <tr><td>Canal de denuncias</td><td>Reportes atendidos</td><td>Registro interno</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="view-canal" class="content-view" style="display:none;">
-                    <div class="card p-5 border-0 shadow-sm">
-                        <h3 class="fw-bold d1-blue-text text-center">CANAL DE DENUNCIAS CONFIDENCIAL</h3>
-                        <p class="text-center text-muted">Espacio seguro y anónimo para reportar situaciones de abuso o acoso.</p>
-                        <hr class="w-25 mx-auto mb-4">
-                        <div class="col-md-8 mx-auto">
-                            <textarea id="denuncia-texto" class="form-control mb-3" rows="5" placeholder="Describa los hechos detalladamente..."></textarea>
-                            <button class="btn btn-d1 px-5 py-2 w-100" onclick="enviarDenuncia()">ENVIAR REPORTE SEGURO</button>
-                        </div>
-                    </div>
-                </div>
-
-            </main>
+    <div class="container mt-4">
+        <div class="welcome-banner shadow-sm p-4">
+            <h2 id="display-name" class="fw-bold"></h2>
+            <span id="display-role" class="badge bg-white text-primary p-2"></span>
+        </div>
+        <div class="card p-4 border-0 shadow-sm mt-3 border-top border-danger border-5">
+            <h4>Panel de Control - Programa Líder Responsable</h4>
+            <p>Estado actual de la tienda: <strong>Óptimo (Verde)</strong></p>
         </div>
     </div>
 </div>
