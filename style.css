@@ -3,42 +3,111 @@
     --d1-blue: #005696; 
 }
 
-body { background-color: #888; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+body { 
+    background-color: #888; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    margin: 0;
+    overflow-x: hidden;
+}
 
-/* Pantalla de Acceso */
-#auth-container { height: 100vh; display: flex; align-items: center; justify-content: center; }
+/* --- Pantalla de Acceso (Login y Registro) --- */
+#auth-container { 
+    height: 100vh; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
 .auth-card { 
-    background: white; padding: 2.5rem; border-radius: 30px; 
-    width: 95%; max-width: 480px; text-align: center; 
+    background: white; 
+    padding: 2.5rem; 
+    border-radius: 30px; 
+    width: 90%; 
+    max-width: 480px; 
+    text-align: center; 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
 }
-.login-logo { width: 110px; margin-bottom: 15px; }
 
-/* Bienestar Frase */
+.login-logo { width: 120px; margin-bottom: 15px; }
+
+/* Mensaje de Bienestar */
 .bienestar-contenedor h5 {
-    font-style: italic; color: var(--d1-blue);
+    font-style: italic; 
+    color: var(--d1-blue);
     border-bottom: 3px solid var(--d1-red);
-    display: inline-block; padding-bottom: 5px;
+    display: inline-block; 
+    padding-bottom: 5px;
 }
 
-/* Dashboard */
-.navbar-d1 { background-color: var(--d1-red); border-bottom: 5px solid var(--d1-blue); }
-.d1-blue-text { color: var(--d1-blue); }
-.sidebar { background: white; min-height: 100vh; }
+/* --- Dashboard y Menú Principal --- */
+.navbar-d1 { 
+    background-color: var(--d1-red); 
+    border-bottom: 5px solid var(--d1-blue); 
+    color: white;
+}
+
+.sidebar { 
+    background: white; 
+    min-height: 100vh; 
+    border-right: 1px solid #ddd;
+}
+
 .nav-link { 
-    color: #333; font-weight: bold; border-radius: 10px; 
-    margin-bottom: 8px; display: flex; align-items: center; transition: 0.3s;
+    color: #333; 
+    font-weight: bold; 
+    border-radius: 10px; 
+    margin-bottom: 8px; 
+    display: flex; 
+    align-items: center; 
+    transition: 0.3s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    padding: 12px;
 }
-.nav-link:hover { background-color: #f1f1f1; transform: translateX(5px); }
-.nav-link.active { background-color: var(--d1-blue) !important; color: white !important; }
 
-.btn-d1 { background-color: var(--d1-red); color: white; font-weight: bold; border: none; }
-.btn-d1:hover { background-color: #b3050f; color: white; }
+.nav-link:hover { 
+    background-color: #f1f1f1; 
+    transform: translateX(5px); 
+    color: var(--d1-red);
+}
 
-.welcome-banner { background: var(--d1-blue); color: white; border-radius: 15px; padding: 30px; }
+.nav-link.active { 
+    background-color: var(--d1-blue) !important; 
+    color: white !important; 
+}
 
-/* Animación de entrada */
-.content-view { animation: fadeInUp 0.4s ease forwards; }
+/* --- Componentes --- */
+.btn-d1 { 
+    background-color: var(--d1-red); 
+    color: white; 
+    font-weight: bold; 
+    border: none; 
+}
+
+.btn-d1:hover { 
+    background-color: #b3050f; 
+    color: white; 
+}
+
+.welcome-banner { 
+    background: var(--d1-blue); 
+    color: white; 
+    border-radius: 15px; 
+    padding: 30px; 
+}
+
+.d1-blue-text { color: var(--d1-blue); }
+
+/* Animación de entrada de contenido */
+.content-view { 
+    animation: fadeInUp 0.4s ease forwards; 
+}
+
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+.status-box { transition: 0.3s; cursor: default; }
