@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Programa Líder Responsable | Tiendas D1</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -52,14 +53,67 @@
         </div>
         <button class="btn btn-outline-light btn-sm fw-bold" onclick="location.reload()">CERRAR SESIÓN</button>
     </nav>
-    <div class="container mt-4">
-        <div class="welcome-banner shadow-sm p-4">
-            <h2 id="display-name" class="fw-bold"></h2>
-            <span id="display-role" class="badge bg-white text-primary p-2"></span>
-        </div>
-        <div class="card p-4 border-0 shadow-sm mt-3 border-top border-danger border-5">
-            <h4>Panel de Control - Programa Líder Responsable</h4>
-            <p>Estado actual de la tienda: <strong>Óptimo (Verde)</strong></p>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 bg-white shadow-sm p-3" style="min-height: 90vh;">
+                <div class="nav flex-column nav-pills mt-4">
+                    <button class="nav-link active mb-2 text-start d-flex align-items-center" onclick="showTab('home', event)">
+                        <span class="material-icons me-2">dashboard</span> PANEL
+                    </button>
+                    <button class="nav-link mb-2 text-start d-flex align-items-center" onclick="showTab('indicadores', event)">
+                        <span class="material-icons me-2">analytics</span> INDICADORES
+                    </button>
+                    <button class="nav-link mb-2 text-start d-flex align-items-center" onclick="showTab('canal', event)">
+                        <span class="material-icons me-2">gavel</span> CANAL ÉTICO
+                    </button>
+                </div>
+            </nav>
+
+            <main class="col-md-9 col-lg-10 p-4">
+                
+                <div id="view-home" class="content-view">
+                    <div class="welcome-banner shadow-sm p-4 mb-4">
+                        <h2 id="display-name" class="fw-bold"></h2>
+                        <span id="display-role" class="badge bg-white text-primary p-2"></span>
+                    </div>
+                    <div class="card p-4 border-0 shadow-sm border-top border-danger border-5">
+                        <h4 class="fw-bold d1-blue-text">Semáforo Laboral</h4>
+                        <p>Estado actual de la tienda basado en auditorías.</p>
+                        <div class="row g-2 text-center text-white fw-bold">
+                            <div class="col-4"><div class="p-3 bg-success rounded shadow-sm">VERDE</div></div>
+                            <div class="col-4" style="opacity: 0.3;"><div class="p-3 bg-warning text-dark rounded shadow-sm">AMARILLO</div></div>
+                            <div class="col-4" style="opacity: 0.3;"><div class="p-3 bg-danger rounded shadow-sm">ROJO</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-indicadores" class="content-view" style="display:none;">
+                    <div class="card p-4 border-0 shadow-sm border-top border-primary border-5">
+                        <h4 class="fw-bold d1-blue-text mb-4">Matriz de Indicadores</h4>
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr><th>Actividad</th><th>Indicador</th><th>Método</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Taller Liderazgo</td><td>Conocimiento adquirido</td><td>Prueba</td></tr>
+                                <tr><td>Auditorías</td><td>Cumplimiento normas</td><td>Lista chequeo</td></tr>
+                                <tr><td>Evaluación 360</td><td>Satisfacción equipo</td><td>Encuesta</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="view-canal" class="content-view" style="display:none;">
+                    <div class="card p-4 border-0 shadow-sm">
+                        <h4 class="fw-bold d1-blue-text text-center">CANAL DE DENUNCIAS</h4>
+                        <p class="text-center text-muted">Reporta situaciones de abuso de forma anónima.</p>
+                        <textarea class="form-control mb-3" id="denuncia-texto" rows="4" placeholder="Escriba aquí..."></textarea>
+                        <button class="btn btn-d1 w-100" onclick="alert('Reporte enviado con éxito')">ENVIAR REPORTE</button>
+                    </div>
+                </div>
+
+            </main>
         </div>
     </div>
 </div>
