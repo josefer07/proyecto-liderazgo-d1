@@ -1,49 +1,55 @@
-:root { 
-    --d1-red: #e30613; 
-    --d1-blue: #005696; 
+// Función para cambiar entre Login y Registro
+function toggleAuth() {
+    const loginSec = document.getElementById('login-section');
+    const regSec = document.getElementById('register-section');
+    
+    if (loginSec.style.display === "none") {
+        loginSec.style.display = "block";
+        regSec.style.display = "none";
+    } else {
+        loginSec.style.display = "none";
+        regSec.style.display = "block";
+    }
 }
 
-/* Fondo del Login */
-#auth-container { 
-    height: 100vh; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
-                url('https://noticias.canaltro.com/wp-content/uploads/2023/11/Tiendas-D1.jpg') center/cover;
-}
+// Simulación de Base de Datos para el Prototipo
+let usuarios = {
+    "jose": { nombre: "Jose Calderin", rol: "Supervisor / Jefe de Tienda" }
+};
 
-.auth-card { 
-    background: white; 
-    padding: 3rem; 
-    border-radius: 20px; 
-    width: 100%; 
-    max-width: 450px; 
-    text-align: center; 
-}
+// Lógica de Registro
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const nombre = document.getElementById('regName').value;
+    const user = document.getElementById('regUser').value;
+    const rol = document.getElementById('regRole').value;
+    
+    usuarios[user] = { nombre: nombre, rol: rol };
+    alert("¡Usuario creado con éxito! Ahora inicia sesión.");
+    toggleAuth();
+});
 
-.login-logo { width: 140px; margin-bottom: 25px; }
+// Lógica de Login
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const user = document.getElementById('loginUser').value;
+    
+    if (usuarios[user]) {
+        document.getElementById('display-name').innerText = `¡Hola, Bienvenido, ${usuarios[user].nombre}!`;
+        document.getElementById('display-role').innerText = usuarios[user].rol;
+        
+        document.getElementById('auth-container').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+    } else {
+        alert("Usuario no encontrado. Por favor, regístrate primero.");
+    }
+});
 
-/* Dashboard */
-.navbar-d1 { background-color: var(--d1-red); border-bottom: 5px solid var(--d1-blue); }
-.d1-blue-text { color: var(--d1-blue); }
-
-.sidebar { background: white; min-height: 100vh; }
-.nav-link { 
-    color: #333; 
-    font-weight: bold; 
-    font-size: 0.9rem; 
-    text-align: left;
-    border: 1px solid #eee;
-}
-.nav-link.active { background-color: var(--d1-blue) !important; color: white !important; }
-
-.btn-d1 { background-color: var(--d1-red); color: white; font-weight: bold; border: none; }
-.btn-d1:hover { background-color: #b3050f; color: white; }
-
-.welcome-banner { 
-    background: var(--d1-blue); 
-    color: white; 
-    padding: 30px; 
-    border-radius: 15px; 
+// Navegación del Dashboard
+function showTab(view) {
+    document.querySelectorAll('.content-view').forEach(v => v.style.display = 'none');
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    
+    document.getElementById('view-' + view).style.display = 'block';
+    event.currentTarget.classList.add('active');
 }
