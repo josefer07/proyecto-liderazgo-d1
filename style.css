@@ -3,10 +3,12 @@
     --d1-blue: #005696; 
 }
 
+/* Fondo Blanco */
 body { 
-    background-color: #ffffff; 
+    background-color: #ffffff !important; 
     font-family: 'Segoe UI', sans-serif; 
     margin: 0;
+    padding: 0;
 }
 
 #auth-container { 
@@ -17,61 +19,33 @@ body {
     background-color: #f8f9fa; 
 }
 
-.auth-card { 
-    background: white; 
-    padding: 2.5rem; 
-    border-radius: 30px; 
-    width: 90%; 
-    max-width: 480px; 
-    text-align: center; 
-}
-
-.login-logo { width: 110px; margin-bottom: 15px; }
-
-.bienestar-contenedor h5 {
-    font-style: italic;
-    color: var(--d1-blue);
-    border-bottom: 3px solid var(--d1-red);
-    display: inline-block;
-    padding-bottom: 5px;
-}
-
-/* Navbar corregida */
+/* Barra Roja Superior FORZADA */
 .navbar-d1 { 
-    background-color: var(--d1-red); 
-    border-bottom: 4px solid var(--d1-blue); 
+    background-color: var(--d1-red) !important; 
+    border-bottom: 4px solid var(--d1-blue);
+    width: 100%;
+}
+
+/* Título en Blanco FORZADO */
+.navbar-d1 h1 {
+    color: #ffffff !important;
 }
 
 .d1-blue-text { color: var(--d1-blue); }
+.btn-d1 { background-color: var(--d1-red); color: white; border: none; }
 
-.btn-d1 { 
-    background-color: var(--d1-red); 
-    color: white; 
-    font-weight: bold; 
-    border: none; 
-}
-
-.btn-d1:hover { background-color: #b3050f; color: white; }
-
-/* Banner de bienvenida pegado arriba */
-.welcome-banner { 
-    background: var(--d1-blue); 
-    color: white; 
-    border-radius: 15px;
-    margin-top: 0; 
-}
-
-/* Menú lateral */
-.nav-link { 
-    color: #333; 
-    font-weight: 500; 
-    border: none !important;
-}
-
-.nav-link:hover { background-color: #f1f1f1; color: var(--d1-red); }
-.nav-link.active { background-color: var(--d1-blue) !important; color: white !important; }
-
-/* Contenido */
+/* Eliminar espacio arriba en el contenido */
 main {
+    margin-top: 0 !important;
     padding-top: 20px !important;
 }
+
+.welcome-banner { 
+    background: var(--d1-blue) !important; 
+    color: white !important; 
+    border-radius: 15px;
+    margin-top: 0 !important;
+}
+
+.nav-link.active { background-color: var(--d1-blue) !important; color: white !important; }
+.nav-link { color: #333; }
