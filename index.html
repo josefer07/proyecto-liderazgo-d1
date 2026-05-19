@@ -38,32 +38,26 @@
 
     <div class="container-fluid">
         <div class="row">
-            <!-- Menú lateral dinámico -->
             <nav class="col-md-3 col-lg-2 bg-light border-end p-3 sidebar-nav" style="min-height: auto;">
                 <div class="nav flex-column nav-pills mt-2" id="menu-lateral"></div>
             </nav>
 
-            <!-- Contenido principal -->
             <main class="col-md-9 col-lg-10 pt-2 pb-2 pe-4 ps-4">
-                <!-- Selector de tienda (solo visible para supervisores) -->
                 <div id="selector-tienda-container" class="mb-3" style="display: none;">
                     <label class="fw-bold">Tienda:</label>
                     <select id="selector-tienda" class="form-select w-auto d-inline-block ms-2"></select>
                 </div>
 
-                <!-- PESTAÑA: PANEL -->
                 <div id="view-home" class="content-view">
                     <div class="welcome-banner shadow-sm p-4 mb-2">
                         <h2 id="display-name" class="fw-bold mb-1"></h2>
                         <span id="display-role" class="badge bg-white text-primary px-3 py-2"></span>
                     </div>
-                    <!-- Semáforo dinámico -->
                     <div class="card p-4 border-0 shadow-sm border-top border-danger border-5 mb-4">
                         <h4 class="fw-bold d1-blue-text">Semáforo Laboral</h4>
                         <p class="text-muted">Estado actual de la tienda basado en el cumplimiento de indicadores.</p>
                         <div id="semaforo-dinamico" class="row g-2 text-center text-white fw-bold"></div>
                     </div>
-                    <!-- KPIs y próximas actividades -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="card p-3 border-0 shadow-sm">
@@ -80,7 +74,6 @@
                     </div>
                 </div>
 
-                <!-- PESTAÑA: INDICADORES (con matriz editable para supervisores) -->
                 <div id="view-indicadores" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-primary border-5">
                         <h4 class="fw-bold d1-blue-text mb-4">Matriz de Indicadores</h4>
@@ -96,7 +89,6 @@
                     </div>
                 </div>
 
-                <!-- PESTAÑA: CANAL ÉTICO (con gestión para supervisor) -->
                 <div id="view-canal" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-warning border-5">
                         <h4 class="fw-bold d1-blue-text text-center mb-3">CANAL DE DENUNCIAS CONFIDENCIAL</h4>
@@ -105,7 +97,6 @@
                             <textarea id="denuncia-texto" class="form-control mb-3" rows="4" placeholder="Describa la situación detalladamente..."></textarea>
                             <button id="btn-enviar-denuncia" class="btn btn-d1 w-100">ENVIAR REPORTE</button>
                         </div>
-                        <!-- Solo supervisor: listado de denuncias -->
                         <div id="gestion-denuncias" class="mt-5" style="display: none;">
                             <hr>
                             <h5>Denuncias recibidas</h5>
@@ -119,7 +110,6 @@
                     </div>
                 </div>
 
-                <!-- PESTAÑA: GESTIÓN DE TRABAJADORES (solo supervisor) -->
                 <div id="view-gestion" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-success border-5">
                         <h4 class="fw-bold d1-blue-text text-center mb-3">GESTIÓN DE TRABAJADORES Y SUPERVISORES</h4>
@@ -149,7 +139,6 @@
                     </div>
                 </div>
 
-                <!-- PESTAÑA: AUDITORÍAS Y MEJORA (solo supervisor) -->
                 <div id="view-auditorias" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-info border-5">
                         <h4 class="fw-bold d1-blue-text text-center mb-3">Auditorías y Plan de Mejora</h4>
@@ -180,7 +169,6 @@
                     </div>
                 </div>
 
-                <!-- PESTAÑA: MI EVALUACIÓN (solo trabajador) -->
                 <div id="view-mi-evaluacion" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-secondary border-5">
                         <h4 class="fw-bold d1-blue-text text-center mb-3">Mi Evaluación de Desempeño</h4>
@@ -189,38 +177,6 @@
                 </div>
 
             </main>
-        </div>
-    </div>
-</div>
-
-<!-- Modales -->
-<!-- Modal para editar indicadores (solo supervisor) -->
-<div class="modal fade" id="modalEditarIndicadores" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white"><h5 class="modal-title">Editar indicadores</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body">
-                <form id="formEditarIndicadores">
-                    <div class="mb-2"><label>Cumplimiento taller (%)</label><input type="number" id="ind-taller" class="form-control" step="1"></div>
-                    <div class="mb-2"><label>Cumplimiento auditoría (%)</label><input type="number" id="ind-auditoria" class="form-control" step="1"></div>
-                    <div class="mb-2"><label>Satisfacción 360 (1-5)</label><input type="number" id="ind-360" class="form-control" step="0.1"></div>
-                    <div class="mb-2"><label>Denuncias atendidas (nº)</label><input type="number" id="ind-denuncias" class="form-control" step="1"></div>
-                    <button type="submit" class="btn btn-d1 mt-2">Guardar</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para editar tienda (nombre) -->
-<div class="modal fade" id="modalEditarTienda" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header"><h5>Editar tienda</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body">
-                <input type="text" id="editTiendaNombre" class="form-control">
-                <button id="guardarEditTienda" class="btn btn-d1 mt-2">Guardar</button>
-            </div>
         </div>
     </div>
 </div>
