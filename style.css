@@ -23,3 +23,9 @@ body { background-color: #ffffff; font-family: 'Segoe UI', sans-serif; }
 .semaforo-verde { background-color: #198754; }
 .semaforo-amarillo { background-color: #ffc107; color: black; }
 .semaforo-rojo { background-color: #dc3545; }
+
+/* Nueva clase para los estados inactivos del semáforo */
+.semaforo-inactivo {
+    opacity: 0.3;
+    filter: grayscale(0.5);
+}
