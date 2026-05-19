@@ -15,7 +15,6 @@ function cargarDatos() {
     const local = localStorage.getItem('appD1');
     if (local) {
         datosApp = JSON.parse(local);
-        // Asegurar que actividadesEvaluacion exista
         if (!datosApp.actividadesEvaluacion) datosApp.actividadesEvaluacion = [];
     } else {
         datosApp.usuarios = { "jefe": { nombre: "Jefe Principal", rol: "supervisor", pass: "1234", tienda: "Central" } };
@@ -51,6 +50,51 @@ function guardarDatos() {
     localStorage.setItem('appD1', JSON.stringify(datosApp));
 }
 
+// --- Funciones para actualizar indicadores desde actividades ---
+function recalcularIndicadoresDesdeActividades(tienda) {
+    // Obtener todos los trabajadores de esta tienda
+    const trabajadores = Object.entries(datosApp.usuarios).filter(([user, data]) => data.rol === 'trabajador' && data.tienda === tienda);
+    if (trabajadores.length === 0) return;
+
+    // Calcular promedio para "Taller liderazgo" (actividad exacta)
+    let sumaTaller = 0, contTaller = 0;
+    let suma360 = 0, cont360 = 0;
+    for (let [user, _] of trabajadores) {
+        const evals = datosApp.evaluacionesDesempeno[user] || [];
+        const tallerEval = evals.find(e => e.actividad === "Taller liderazgo");
+        if (tallerEval && typeof tallerEval.nota === 'number') {
+            sumaTaller += tallerEval.nota;
+            contTaller++;
+        }
+        const eval360 = evals.find(e => e.actividad === "Evaluación 360");
+        if (eval360 && typeof eval360.nota === 'number') {
+            suma360 += eval360.nota;
+            cont360++;
+        }
+    }
+    const nuevoTaller = contTaller > 0 ? Math.round((sumaTaller / contTaller) * 20) : 0; // nota sobre 5 -> porcentaje
+    const nuevaSatisfaccion360 = cont360 > 0 ? parseFloat((suma360 / cont360).toFixed(1)) : 0;
+
+    // Actualizar indicadores en memoria
+    if (datosApp.indicadores[tienda]) {
+        datosApp.indicadores[tienda].taller = nuevoTaller;
+        datosApp.indicadores[tienda].satisfaccion360 = nuevaSatisfaccion360;
+        datosApp.indicadores[tienda].fecha = new Date().toISOString();
+    } else {
+        datosApp.indicadores[tienda] = {
+            taller: nuevoTaller,
+            auditoria: 0,
+            satisfaccion360: nuevaSatisfaccion360,
+            denunciasAtendidas: 0,
+            fecha: new Date().toISOString()
+        };
+    }
+    // Recalcular semáforo y guardar
+    const nuevoSemaforo = actualizarSemaforoTienda(tienda);
+    datosApp.semaforo[tienda] = nuevoSemaforo;
+    guardarDatos();
+}
+
 function actualizarSemaforoTienda(tienda) {
     const ind = datosApp.indicadores[tienda];
     if (!ind) return "rojo";
@@ -60,6 +104,7 @@ function actualizarSemaforoTienda(tienda) {
     return "rojo";
 }
 
+// ======================== LOGIN Y NAVEGACIÓN ========================
 let usuarioActual = null;
 
 function construirMenu() {
@@ -100,14 +145,21 @@ function showTab(view, event) {
     if (view === 'mi-evaluacion') cargarMiEvaluacion();
 }
 
+// ======================== PANEL (con semáforo mejorado) ========================
 function cargarPanel() {
     const tienda = (usuarioActual.rol === 'supervisor') ? document.getElementById('selector-tienda').value : usuarioActual.tienda;
-    const semaforo = datosApp.semaforo[tienda] || 'rojo';
+    const estado = datosApp.semaforo[tienda] || 'rojo';
     const semaforoDiv = document.getElementById('semaforo-dinamico');
     semaforoDiv.innerHTML = `
-        <div class="col-4"><div class="p-3 bg-success rounded shadow-sm ${semaforo !== 'verde' ? 'opacity-25' : ''}">ÓPTIMO</div></div>
-        <div class="col-4"><div class="p-3 bg-warning text-dark rounded shadow-sm ${semaforo !== 'amarillo' ? 'opacity-25' : ''}">RIESGO</div></div>
-        <div class="col-4"><div class="p-3 bg-danger rounded shadow-sm ${semaforo !== 'rojo' ? 'opacity-25' : ''}">CRÍTICO</div></div>
+        <div class="col-4">
+            <div class="p-3 bg-success rounded shadow-sm ${estado !== 'verde' ? 'semaforo-inactivo' : ''}">ÓPTIMO</div>
+        </div>
+        <div class="col-4">
+            <div class="p-3 bg-warning text-dark rounded shadow-sm ${estado !== 'amarillo' ? 'semaforo-inactivo' : ''}">RIESGO</div>
+        </div>
+        <div class="col-4">
+            <div class="p-3 bg-danger rounded shadow-sm ${estado !== 'rojo' ? 'semaforo-inactivo' : ''}">CRÍTICO</div>
+        </div>
     `;
     const ind = datosApp.indicadores[tienda];
     document.getElementById('kpi-resumen').innerHTML = `
@@ -122,19 +174,43 @@ function cargarPanel() {
     document.getElementById('proximas-actividades').innerHTML = prox ? `<ul>${prox}</ul>` : '<p>¡Programa completado!</p>';
 }
 
+// ======================== INDICADORES ========================
+function cargarIndicadores() {
+    const tienda = (usuarioActual.rol === 'supervisor') ? document.getElementById('selector-tienda').value : usuarioActual.tienda;
+    const ind = datosApp.indicadores[tienda];
+    const tbody = document.querySelector('#tabla-indicadores tbody');
+    tbody.innerHTML = `
+        <tr><td>Taller liderazgo</td><td>Nivel de conocimiento</td><td>Prueba escrita</td><td>${ind.taller}%</td><td>>90%</td>
+        <tr><td>Auditorías</td><td>Cumplimiento normas</td><td>Lista de chequeo</td><td>${ind.auditoria}%</td><td>100%</td>
+        <tr><td>Evaluación 360</td><td>Satisfacción equipo</td><td>Encuesta anónima</td><td>${ind.satisfaccion360}/5</td><td>>4.0</td>
+        <tr><td>Canal denuncias</td><td>Reportes atendidos</td><td>Registro interno</td><td>${ind.denunciasAtendidas}</td><td>100%</td>
+    `;
+    const btnEditar = document.getElementById('btn-editar-indicadores');
+    if (usuarioActual.rol === 'supervisor') {
+        btnEditar.style.display = 'block';
+        btnEditar.onclick = () => {
+            crearModalIndicadores();
+            document.getElementById('ind-auditoria').value = ind.auditoria;
+            document.getElementById('ind-denuncias').value = ind.denunciasAtendidas;
+            new bootstrap.Modal(document.getElementById('modalEditarIndicadores')).show();
+        };
+    } else {
+        btnEditar.style.display = 'none';
+    }
+}
+
 function crearModalIndicadores() {
     if (document.getElementById('modalEditarIndicadores')) return;
     const modalHTML = `
         <div class="modal fade" id="modalEditarIndicadores" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header bg-primary text-white"><h5 class="modal-title">Editar indicadores</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                    <div class="modal-header bg-primary text-white"><h5 class="modal-title">Editar indicadores manuales</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                     <div class="modal-body">
                         <form id="formEditarIndicadores">
-                            <div class="mb-2"><label>Cumplimiento taller (%)</label><input type="number" id="ind-taller" class="form-control" step="1"></div>
-                            <div class="mb-2"><label>Cumplimiento auditoría (%)</label><input type="number" id="ind-auditoria" class="form-control" step="1"></div>
-                            <div class="mb-2"><label>Satisfacción 360 (1-5)</label><input type="number" id="ind-360" class="form-control" step="0.1"></div>
+                            <div class="mb-2"><label>Auditoría (%)</label><input type="number" id="ind-auditoria" class="form-control" step="1"></div>
                             <div class="mb-2"><label>Denuncias atendidas (nº)</label><input type="number" id="ind-denuncias" class="form-control" step="1"></div>
+                            <p class="text-muted small">Los indicadores de Taller y Satisfacción 360 se calculan automáticamente desde las notas de actividades.</p>
                             <button type="submit" class="btn btn-d1 mt-2">Guardar</button>
                         </form>
                     </div>
@@ -146,12 +222,12 @@ function crearModalIndicadores() {
     document.getElementById('formEditarIndicadores').onsubmit = (e) => {
         e.preventDefault();
         const tienda = (usuarioActual.rol === 'supervisor') ? document.getElementById('selector-tienda').value : usuarioActual.tienda;
-        const taller = parseInt(document.getElementById('ind-taller').value);
         const auditoria = parseInt(document.getElementById('ind-auditoria').value);
-        const satisfaccion360 = parseFloat(document.getElementById('ind-360').value);
         const denunciasAtendidas = parseInt(document.getElementById('ind-denuncias').value);
-        if (isNaN(taller) || isNaN(auditoria) || isNaN(satisfaccion360) || isNaN(denunciasAtendidas)) return alert("Valores inválidos");
-        datosApp.indicadores[tienda] = { taller, auditoria, satisfaccion360, denunciasAtendidas, fecha: new Date().toISOString() };
+        if (isNaN(auditoria) || isNaN(denunciasAtendidas)) return alert("Valores inválidos");
+        datosApp.indicadores[tienda].auditoria = auditoria;
+        datosApp.indicadores[tienda].denunciasAtendidas = denunciasAtendidas;
+        datosApp.indicadores[tienda].fecha = new Date().toISOString();
         datosApp.semaforo[tienda] = actualizarSemaforoTienda(tienda);
         guardarDatos();
         const modalEl = document.getElementById('modalEditarIndicadores');
@@ -160,40 +236,17 @@ function crearModalIndicadores() {
         cargarPanel();
     };
 }
-function cargarIndicadores() {
-    const tienda = (usuarioActual.rol === 'supervisor') ? document.getElementById('selector-tienda').value : usuarioActual.tienda;
-    const ind = datosApp.indicadores[tienda];
-    const tbody = document.querySelector('#tabla-indicadores tbody');
-    tbody.innerHTML = `
-        <tr><td>Taller liderazgo</td><td>Nivel de conocimiento</td><td>Prueba escrita</td><td>${ind.taller}%</td><td>>90%</td></tr>
-        <tr><td>Auditorías</td><td>Cumplimiento normas</td><td>Lista de chequeo</td><td>${ind.auditoria}%</td><td>100%</td></tr>
-        <tr><td>Evaluación 360</td><td>Satisfacción equipo</td><td>Encuesta anónima</td><td>${ind.satisfaccion360}/5</td><td>>4.0</td></tr>
-        <tr><td>Canal denuncias</td><td>Reportes atendidos</td><td>Registro interno</td><td>${ind.denunciasAtendidas}</td><td>100%</td></tr>
-    `;
-    const btnEditar = document.getElementById('btn-editar-indicadores');
-    if (usuarioActual.rol === 'supervisor') {
-        btnEditar.style.display = 'block';
-        btnEditar.onclick = () => {
-            crearModalIndicadores();
-            document.getElementById('ind-taller').value = ind.taller;
-            document.getElementById('ind-auditoria').value = ind.auditoria;
-            document.getElementById('ind-360').value = ind.satisfaccion360;
-            document.getElementById('ind-denuncias').value = ind.denunciasAtendidas;
-            new bootstrap.Modal(document.getElementById('modalEditarIndicadores')).show();
-        };
-    } else {
-        btnEditar.style.display = 'none';
-    }
-}
 
+// ======================== CANAL ÉTICO (con mensaje oculto para supervisores) ========================
 function cargarCanal() {
     const esSupervisor = (usuarioActual.rol === 'supervisor');
     const formDenuncia = document.getElementById('form-denegocio');
     const gestionDenuncias = document.getElementById('gestion-denuncias');
-
+    const mensaje = document.getElementById('mensaje-canal');
     if (esSupervisor) {
         formDenuncia.style.display = 'none';
         gestionDenuncias.style.display = 'block';
+        if (mensaje) mensaje.style.display = 'none';
         const tbody = document.getElementById('lista-denuncias');
         const tienda = document.getElementById('selector-tienda').value;
         const denunciasFiltradas = datosApp.denuncias.filter(d => d.tienda === tienda);
@@ -205,25 +258,18 @@ function cargarCanal() {
                 <td>${d.estado !== 'resuelto' ? `<button class="btn btn-sm btn-success" onclick="cambiarEstadoDenuncia(${d.id}, 'resuelto')">Resolver</button>` : 'Resuelta'}</td>
             </tr>
         `).join('');
-        if (denunciasFiltradas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay denuncias en esta tienda</td></tr>';
-        }
+        if (denunciasFiltradas.length === 0) tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay denuncias en esta tienda</td></tr>';
     } else {
         formDenuncia.style.display = 'block';
         gestionDenuncias.style.display = 'none';
+        if (mensaje) mensaje.style.display = 'block';
         const btnEnviar = document.getElementById('btn-enviar-denuncia');
         const nuevoBtn = btnEnviar.cloneNode(true);
         btnEnviar.parentNode.replaceChild(nuevoBtn, btnEnviar);
         nuevoBtn.onclick = () => {
             const texto = document.getElementById('denuncia-texto').value.trim();
             if (!texto) return alert("Escribe la denuncia");
-            const nuevaDenuncia = {
-                id: Date.now(),
-                fecha: new Date().toISOString(),
-                descripcion: texto,
-                estado: "pendiente",
-                tienda: usuarioActual.tienda
-            };
+            const nuevaDenuncia = { id: Date.now(), fecha: new Date().toISOString(), descripcion: texto, estado: "pendiente", tienda: usuarioActual.tienda };
             datosApp.denuncias.push(nuevaDenuncia);
             guardarDatos();
             alert("Denuncia enviada anónimamente");
@@ -238,11 +284,11 @@ window.cambiarEstadoDenuncia = (id, estado) => {
     cargarCanal();
 };
 
-// GESTIÓN COMPLETA (CORREGIDA)
+// ======================== GESTIÓN (con recalculo automático al guardar notas) ========================
 function cargarGestion() {
     if (usuarioActual.rol !== 'supervisor') return;
-    
-    // ---------- 1. Usuarios y Tiendas ----------
+
+    // Usuarios y tiendas
     const selectTienda = document.getElementById('newTienda');
     selectTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
     const divTiendas = document.getElementById('lista-tiendas');
@@ -299,7 +345,7 @@ function cargarGestion() {
         } else alert("Nombre inválido o duplicado");
     };
 
-    // ---------- 2. Gestión de actividades de evaluación ----------
+    // Actividades de evaluación
     const listaActividades = document.getElementById('lista-actividades');
     function renderActividades() {
         listaActividades.innerHTML = datosApp.actividadesEvaluacion.map((act, idx) => `
@@ -327,18 +373,14 @@ function cargarGestion() {
     };
     renderActividades();
 
-    // ---------- 3. Calificar trabajadores (CORREGIDO) ----------
+    // Calificar trabajadores
     function llenarSelectActividades() {
         const selAct = document.getElementById('selActividadEvaluacion');
-        if (selAct) {
-            selAct.innerHTML = '<option value="">Seleccione actividad</option>' + datosApp.actividadesEvaluacion.map(a => `<option value="${a}">${a}</option>`).join('');
-        }
+        if (selAct) selAct.innerHTML = '<option value="">Seleccione actividad</option>' + datosApp.actividadesEvaluacion.map(a => `<option value="${a}">${a}</option>`).join('');
     }
     function llenarSelectTiendasEvaluacion() {
         const selTienda = document.getElementById('selTiendaEvaluacion');
-        if (selTienda) {
-            selTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
-        }
+        if (selTienda) selTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
     }
     llenarSelectActividades();
     llenarSelectTiendasEvaluacion();
@@ -351,7 +393,6 @@ function cargarGestion() {
             tbody.innerHTML = '<tr><td colspan="4" class="text-center">Seleccione actividad y tienda</td></tr>';
             return;
         }
-        // Filtrar trabajadores por tienda
         const trabajadores = Object.entries(datosApp.usuarios).filter(([user, data]) => data.rol === 'trabajador' && data.tienda === tienda);
         if (trabajadores.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay trabajadores en esta tienda</td></tr>';
@@ -359,11 +400,11 @@ function cargarGestion() {
         }
         tbody.innerHTML = '';
         trabajadores.forEach(([user, data]) => {
-            const evaluacionesUsuario = datosApp.evaluacionesDesempeno[user] || [];
-            const evalExistente = evaluacionesUsuario.find(e => e.actividad === actividad);
-            const nota = evalExistente ? evalExistente.nota : '';
-            const comentario = evalExistente ? evalExistente.comentario : '';
-            const fecha = evalExistente ? evalExistente.fecha.split('T')[0] : new Date().toISOString().split('T')[0];
+            const evals = datosApp.evaluacionesDesempeno[user] || [];
+            const existente = evals.find(e => e.actividad === actividad);
+            const nota = existente ? existente.nota : '';
+            const comentario = existente ? existente.comentario : '';
+            const fecha = existente ? existente.fecha.split('T')[0] : new Date().toISOString().split('T')[0];
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${data.nombre} (${user})</td>
@@ -377,7 +418,6 @@ function cargarGestion() {
     document.getElementById('selActividadEvaluacion').onchange = cargarTablaCalificaciones;
     document.getElementById('selTiendaEvaluacion').onchange = cargarTablaCalificaciones;
 
-    // Botón guardar (se reemplaza cada vez para evitar múltiples listeners)
     const btnGuardar = document.getElementById('btnGuardarCalificaciones');
     const nuevoBtnGuardar = btnGuardar.cloneNode(true);
     btnGuardar.parentNode.replaceChild(nuevoBtnGuardar, btnGuardar);
@@ -385,7 +425,6 @@ function cargarGestion() {
         const actividad = document.getElementById('selActividadEvaluacion').value;
         const tienda = document.getElementById('selTiendaEvaluacion').value;
         if (!actividad || !tienda) return alert("Seleccione actividad y tienda");
-        // Recoger todas las notas de la tabla actual
         const notas = [];
         document.querySelectorAll('#tablaCalificacionesBody .nota-input').forEach(input => {
             const user = input.dataset.user;
@@ -399,25 +438,21 @@ function cargarGestion() {
         for (let n of notas) {
             if (!datosApp.evaluacionesDesempeno[n.user]) datosApp.evaluacionesDesempeno[n.user] = [];
             const idx = datosApp.evaluacionesDesempeno[n.user].findIndex(e => e.actividad === actividad);
-            const nuevaEval = {
-                actividad: actividad,
-                nota: n.nota,
-                comentario: n.comentario,
-                fecha: n.fecha,
-                evaluador: usuarioActual.user
-            };
-            if (idx !== -1) {
-                datosApp.evaluacionesDesempeno[n.user][idx] = nuevaEval;
-            } else {
-                datosApp.evaluacionesDesempeno[n.user].push(nuevaEval);
-            }
+            const nuevaEval = { actividad, nota: n.nota, comentario: n.comentario, fecha: n.fecha, evaluador: usuarioActual.user };
+            if (idx !== -1) datosApp.evaluacionesDesempeno[n.user][idx] = nuevaEval;
+            else datosApp.evaluacionesDesempeno[n.user].push(nuevaEval);
         }
         guardarDatos();
-        alert("Calificaciones guardadas");
-        cargarTablaCalificaciones(); // refrescar
+        // Recalcular indicadores para esta tienda
+        recalcularIndicadoresDesdeActividades(tienda);
+        cargarIndicadores();
+        cargarPanel();
+        cargarTablaCalificaciones();
+        alert("Calificaciones guardadas y semáforo actualizado");
     };
 }
 
+// Editar/Eliminar usuarios y tiendas (globales)
 window.editarUsuarioGlobal = (user) => {
     const u = datosApp.usuarios[user];
     const nuevoNombre = prompt("Nuevo nombre", u.nombre);
@@ -439,9 +474,8 @@ window.eliminarUsuarioGlobal = (user) => {
 
 function crearModalTienda(tiendaActual, callback) {
     if (document.getElementById('modalEditarTienda')) {
-        const modalEl = document.getElementById('modalEditarTienda');
         document.getElementById('editTiendaNombre').value = tiendaActual;
-        new bootstrap.Modal(modalEl).show();
+        new bootstrap.Modal(document.getElementById('modalEditarTienda')).show();
         return;
     }
     const modalHTML = `
@@ -498,6 +532,7 @@ window.eliminarTienda = (tienda) => {
     }
 };
 
+// ======================== AUDITORÍAS ========================
 function cargarAuditorias() {
     if (usuarioActual.rol !== 'supervisor') return;
     const tienda = document.getElementById('selector-tienda').value;
@@ -508,10 +543,7 @@ function cargarAuditorias() {
         <div class="form-check"><input class="form-check-input" type="checkbox" id="chk3"> Condiciones de seguridad</div>
     `;
     document.getElementById('btn-guardar-auditoria').onclick = () => {
-        let cumplimiento = 0;
-        if (document.getElementById('chk1').checked) cumplimiento += 33;
-        if (document.getElementById('chk2').checked) cumplimiento += 33;
-        if (document.getElementById('chk3').checked) cumplimiento += 34;
+        let cumplimiento = (document.getElementById('chk1').checked?33:0) + (document.getElementById('chk2').checked?33:0) + (document.getElementById('chk3').checked?34:0);
         datosApp.indicadores[tienda].auditoria = cumplimiento;
         datosApp.semaforo[tienda] = actualizarSemaforoTienda(tienda);
         guardarDatos();
@@ -550,6 +582,7 @@ window.toggleActividad = (tienda, idx) => {
     cargarAuditorias();
 };
 
+// ======================== MI EVALUACIÓN (para trabajadores) ========================
 function cargarMiEvaluacion() {
     const evaluaciones = datosApp.evaluacionesDesempeno[usuarioActual.user] || [];
     if (evaluaciones.length === 0) {
@@ -570,7 +603,7 @@ function cargarMiEvaluacion() {
     document.getElementById('evaluacion-trabajador-contenido').innerHTML = html;
 }
 
-// LOGIN
+// ======================== LOGIN ========================
 document.getElementById('loginForm').onsubmit = (e) => {
     e.preventDefault();
     const user = document.getElementById('loginUser').value;
