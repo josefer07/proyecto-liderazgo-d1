@@ -29,13 +29,12 @@ function guardarUsuarios(usuarios) {
     localStorage.setItem('usuariosD1', JSON.stringify(usuarios));
 }
 
-// Actualizar la lista de usuarios
+// Actualizar la lista de usuarios (excluye al usuario actual y al "jefe")
 function actualizarListaUsuarios(usuarios, usuarioActual) {
     const listaDiv = document.getElementById('listaUsuarios');
     if (!listaDiv) return;
     let html = '<table class="table table-sm table-bordered"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Acciones</th></tr></thead><tbody>';
     for (const [user, data] of Object.entries(usuarios)) {
-        // No mostrar al usuario actual ni al usuario "jefe" (protegido)
         if (user !== usuarioActual && user !== "jefe") {
             html += `
                 <tr>
@@ -50,11 +49,98 @@ function actualizarListaUsuarios(usuarios, usuarioActual) {
             `;
         }
     }
-    html += '</tbody><table>';
+    html += '</tbody></table>';
     listaDiv.innerHTML = html || '<p class="text-muted">No hay otros usuarios creados.</p>';
 }
 
-// Función global para editar usuario (solo si no es "jefe")
+// Crear el modal dinámicamente (solo para supervisores/jefes)
+let modalInstance = null;
+
+function crearModalEdicion() {
+    // Si ya existe, no lo creamos de nuevo
+    if (document.getElementById('editarUsuarioModal')) return;
+    
+    const modalHTML = `
+        <div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="editarUsuarioModalLabel">Editar Usuario</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editarUsuarioForm">
+                            <div class="mb-3">
+                                <label class="form-label">Usuario (no editable)</label>
+                                <input type="text" id="editUsername" class="form-control" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nombre completo</label>
+                                <input type="text" id="editNombre" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Rol</label>
+                                <select id="editRol" class="form-select">
+                                    <option value="Trabajador Operativo">Trabajador Operativo</option>
+                                    <option value="Supervisor / Jefe de Tienda">Supervisor / Jefe de Tienda</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nueva contraseña (dejar en blanco para no cambiar)</label>
+                                <input type="password" id="editPass" class="form-control" placeholder="Escriba solo si desea cambiarla">
+                            </div>
+                            <button type="submit" class="btn btn-d1 w-100">GUARDAR CAMBIOS</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Configurar el evento submit del formulario de edición
+    const editarForm = document.getElementById('editarUsuarioForm');
+    if (editarForm) {
+        editarForm.onsubmit = (e) => {
+            e.preventDefault();
+            const username = document.getElementById('editUsername').value;
+            if (username === "jefe") {
+                alert("No se puede editar al usuario principal.");
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal'));
+                modal.hide();
+                return;
+            }
+            const nuevoNombre = document.getElementById('editNombre').value.trim();
+            const nuevoRol = document.getElementById('editRol').value;
+            const nuevaPass = document.getElementById('editPass').value;
+            
+            if (!nuevoNombre) {
+                alert("El nombre no puede estar vacío.");
+                return;
+            }
+            
+            let usuarios = cargarUsuarios();
+            if (!usuarios[username]) {
+                alert("El usuario ya no existe.");
+                return;
+            }
+            
+            usuarios[username].nombre = nuevoNombre;
+            usuarios[username].rol = nuevoRol;
+            if (nuevaPass.trim() !== "") {
+                usuarios[username].pass = nuevaPass.trim();
+            }
+            
+            guardarUsuarios(usuarios);
+            alert(`Usuario ${username} actualizado correctamente.`);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal'));
+            modal.hide();
+            actualizarListaUsuarios(usuarios, window.usuarioActualLogueado);
+        };
+    }
+}
+
+// Función global para editar usuario (crea el modal si no existe y lo muestra)
 window.editarUsuario = function(username) {
     if (username === "jefe") {
         alert("El usuario principal no puede ser editado.");
@@ -64,16 +150,22 @@ window.editarUsuario = function(username) {
     const userData = usuarios[username];
     if (!userData) return;
     
+    // Crear modal si no existe
+    crearModalEdicion();
+    
+    // Llenar datos
     document.getElementById('editUsername').value = username;
     document.getElementById('editNombre').value = userData.nombre;
     document.getElementById('editRol').value = userData.rol;
     document.getElementById('editPass').value = '';
     
-    const modal = new bootstrap.Modal(document.getElementById('editarUsuarioModal'));
+    // Mostrar modal
+    const modalElement = document.getElementById('editarUsuarioModal');
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
 }
 
-// Función global para eliminar usuario (protege al "jefe")
+// Función global para eliminar usuario
 window.eliminarUsuario = function(username) {
     if (username === "jefe") {
         alert("El usuario principal no puede ser eliminado.");
@@ -140,7 +232,10 @@ function initDashboard(usuarioActual, rolActual, nombreActual) {
         // Formulario de creación de usuario (con validación duplicados insensible a mayúsculas)
         const formCrear = document.getElementById('crearUsuarioForm');
         if (formCrear) {
-            formCrear.onsubmit = (e) => {
+            // Remover eventos anteriores para evitar duplicados
+            const newForm = formCrear.cloneNode(true);
+            formCrear.parentNode.replaceChild(newForm, formCrear);
+            newForm.onsubmit = (e) => {
                 e.preventDefault();
                 const nombre = document.getElementById('newNombre').value.trim();
                 const user = document.getElementById('newUser').value.trim();
@@ -153,7 +248,6 @@ function initDashboard(usuarioActual, rolActual, nombreActual) {
                 }
                 
                 let usuarios = cargarUsuarios();
-                // Comparación insensible a mayúsculas
                 const existe = Object.keys(usuarios).some(u => u.toLowerCase() === user.toLowerCase());
                 if (existe) {
                     alert("Ese nombre de usuario ya existe. Elija otro.");
@@ -163,52 +257,8 @@ function initDashboard(usuarioActual, rolActual, nombreActual) {
                 usuarios[user] = { nombre: nombre, rol: rol, pass: pass };
                 guardarUsuarios(usuarios);
                 alert(`Usuario ${user} creado exitosamente como ${rol}.`);
-                formCrear.reset();
+                newForm.reset();
                 actualizarListaUsuarios(usuarios, usuarioActual);
-            };
-        }
-        
-        // Formulario de edición (modal)
-        const editarForm = document.getElementById('editarUsuarioForm');
-        if (editarForm) {
-            // Remover eventos anteriores para evitar duplicados
-            const newForm = editarForm.cloneNode(true);
-            editarForm.parentNode.replaceChild(newForm, editarForm);
-            newForm.onsubmit = (e) => {
-                e.preventDefault();
-                const username = document.getElementById('editUsername').value;
-                if (username === "jefe") {
-                    alert("No se puede editar al usuario principal.");
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal'));
-                    modal.hide();
-                    return;
-                }
-                const nuevoNombre = document.getElementById('editNombre').value.trim();
-                const nuevoRol = document.getElementById('editRol').value;
-                const nuevaPass = document.getElementById('editPass').value;
-                
-                if (!nuevoNombre) {
-                    alert("El nombre no puede estar vacío.");
-                    return;
-                }
-                
-                let usuarios = cargarUsuarios();
-                if (!usuarios[username]) {
-                    alert("El usuario ya no existe.");
-                    return;
-                }
-                
-                usuarios[username].nombre = nuevoNombre;
-                usuarios[username].rol = nuevoRol;
-                if (nuevaPass.trim() !== "") {
-                    usuarios[username].pass = nuevaPass.trim();
-                }
-                
-                guardarUsuarios(usuarios);
-                alert(`Usuario ${username} actualizado correctamente.`);
-                const modal = bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal'));
-                modal.hide();
-                actualizarListaUsuarios(usuarios, window.usuarioActualLogueado);
             };
         }
     }
