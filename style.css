@@ -3,13 +3,11 @@
     --d1-blue: #005696; 
 }
 
-/* Fondo de la página en Blanco para legibilidad */
 body { 
     background-color: #ffffff; 
     font-family: 'Segoe UI', sans-serif; 
 }
 
-/* Auth Container sigue igual para resaltar el login */
 #auth-container { 
     height: 100vh; 
     display: flex; 
@@ -37,19 +35,16 @@ body {
     padding-bottom: 5px;
 }
 
-/* Navbar: Letras blancas, más grandes y botón a la derecha */
 .navbar-d1 { 
     background-color: var(--d1-red); 
     border-bottom: 4px solid var(--d1-blue); 
 }
 
-/* Título más grande y forzado a blanco */
 .navbar-brand {
     font-size: 2.5rem !important;
     color: white !important;
 }
 
-/* Botón de cierre separado a la derecha */
 .btn-logout {
     margin-left: auto;
 }
@@ -58,7 +53,6 @@ body {
 .btn-d1 { background-color: var(--d1-red); color: white; font-weight: bold; border: none; }
 .btn-d1:hover { background-color: #b3050f; color: white; }
 
-/* Banner de bienvenida (más compacto y arriba) */
 .welcome-banner { 
     background: var(--d1-blue); 
     color: white; 
@@ -67,7 +61,6 @@ body {
     margin-bottom: 0.5rem;
 }
 
-/* Estilos de navegación */
 .nav-link { 
     color: #333; 
     font-weight: 500; 
@@ -81,7 +74,6 @@ body {
     animation: fadeIn 0.5s ease-in-out;
 }
 
-/* Menú lateral sin altura excesiva */
 .sidebar-nav {
     min-height: auto;
 }
