@@ -2,21 +2,19 @@
 let datosApp = {
     usuarios: {},
     tiendas: [],
-    indicadores: {},    // por tienda: { taller, auditoria, satisfaccion360, denunciasAtendidas }
-    semaforo: {},       // por tienda: "verde","amarillo","rojo"
-    cronograma: {},     // por tienda: { actividades: [], cicloActual, fechaInicio }
-    denuncias: [],      // cada una: { id, fecha, descripcion, estado, tienda }
-    evaluacionesDesempeno: {}, // por usuario (trabajador): { calificacion, comentarios, fecha }
-    planesMejora: {}    // por tienda: texto
+    indicadores: {},
+    semaforo: {},
+    cronograma: {},
+    denuncias: [],
+    evaluacionesDesempeno: {},
+    planesMejora: {}
 };
 
-// Función para cargar/guardar datos en localStorage
 function cargarDatos() {
     const local = localStorage.getItem('appD1');
     if (local) {
         datosApp = JSON.parse(local);
     } else {
-        // Inicialización por defecto
         datosApp.usuarios = { "jefe": { nombre: "Jefe Principal", rol: "supervisor", pass: "1234", tienda: "Central" } };
         datosApp.tiendas = ["Central", "Tienda Norte", "Tienda Sur"];
         datosApp.indicadores = {
@@ -29,7 +27,6 @@ function cargarDatos() {
         datosApp.denuncias = [];
         datosApp.evaluacionesDesempeno = {};
         datosApp.planesMejora = {};
-        // Inicializar cronograma para cada tienda
         const actividadesBase = [
             "Taller liderazgo ético", "Simulación de casos reales", "Evaluación 360°", "Auditorías sorpresa",
             "Semáforo laboral", "Canal de denuncias", "Rotación de roles", "Plan de mejora",
@@ -50,7 +47,6 @@ function guardarDatos() {
     localStorage.setItem('appD1', JSON.stringify(datosApp));
 }
 
-// ======================== FUNCIONES AUXILIARES ========================
 function actualizarSemaforoTienda(tienda) {
     const ind = datosApp.indicadores[tienda];
     if (!ind) return "rojo";
@@ -66,7 +62,6 @@ function recalcularTodosSemaforos() {
     guardarDatos();
 }
 
-// ======================== RENDERIZADO DE INTERFAZ SEGÚN ROL ========================
 let usuarioActual = null;
 
 function construirMenu() {
@@ -91,7 +86,6 @@ function construirMenu() {
         btn.onclick = (e) => showTab(b.id, e);
         menu.appendChild(btn);
     });
-    // Activar home por defecto
     document.querySelector('#menu-lateral .nav-link')?.classList.add('active');
 }
 
@@ -100,7 +94,6 @@ function showTab(view, event) {
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     document.getElementById('view-' + view).style.display = 'block';
     if (event) event.currentTarget.classList.add('active');
-    // Cargar datos específicos de la vista
     if (view === 'home') cargarPanel();
     if (view === 'indicadores') cargarIndicadores();
     if (view === 'canal') cargarCanal();
@@ -109,7 +102,6 @@ function showTab(view, event) {
     if (view === 'mi-evaluacion') cargarMiEvaluacion();
 }
 
-// ======================== VISTAS ========================
 function cargarPanel() {
     const tienda = (usuarioActual.rol === 'supervisor') ? document.getElementById('selector-tienda').value : usuarioActual.tienda;
     const semaforo = datosApp.semaforo[tienda] || 'rojo';
@@ -119,7 +111,6 @@ function cargarPanel() {
         <div class="col-4"><div class="p-3 bg-warning text-dark rounded shadow-sm ${semaforo !== 'amarillo' ? 'opacity-25' : ''}">RIESGO</div></div>
         <div class="col-4"><div class="p-3 bg-danger rounded shadow-sm ${semaforo !== 'rojo' ? 'opacity-25' : ''}">CRÍTICO</div></div>
     `;
-    // KPIs resumen
     const ind = datosApp.indicadores[tienda];
     document.getElementById('kpi-resumen').innerHTML = `
         <p>✅ Taller: ${ind.taller}%</p>
@@ -127,13 +118,52 @@ function cargarPanel() {
         <p>⭐ Satisfacción 360: ${ind.satisfaccion360}/5</p>
         <p>📢 Denuncias atendidas: ${ind.denunciasAtendidas}</p>
     `;
-    // Próximas actividades
     const crono = datosApp.cronograma[tienda];
     const noCompletadas = crono.actividades.filter(a => !a.completada);
     const prox = noCompletadas.slice(0, 3).map(a => `<li>Semana ${a.semana}: ${a.nombre}</li>`).join('');
     document.getElementById('proximas-actividades').innerHTML = prox ? `<ul>${prox}</ul>` : '<p>¡Programa completado!</p>';
 }
 
+// Modal dinámico para indicadores
+let modalIndicadoresInstance = null;
+function crearModalIndicadores() {
+    if (document.getElementById('modalEditarIndicadores')) return;
+    const modalHTML = `
+        <div class="modal fade" id="modalEditarIndicadores" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white"><h5 class="modal-title">Editar indicadores</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                    <div class="modal-body">
+                        <form id="formEditarIndicadores">
+                            <div class="mb-2"><label>Cumplimiento taller (%)</label><input type="number" id="ind-taller" class="form-control" step="1"></div>
+                            <div class="mb-2"><label>Cumplimiento auditoría (%)</label><input type="number" id="ind-auditoria" class="form-control" step="1"></div>
+                            <div class="mb-2"><label>Satisfacción 360 (1-5)</label><input type="number" id="ind-360" class="form-control" step="0.1"></div>
+                            <div class="mb-2"><label>Denuncias atendidas (nº)</label><input type="number" id="ind-denuncias" class="form-control" step="1"></div>
+                            <button type="submit" class="btn btn-d1 mt-2">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.getElementById('formEditarIndicadores').onsubmit = (e) => {
+        e.preventDefault();
+        const tienda = (usuarioActual.rol === 'supervisor') ? document.getElementById('selector-tienda').value : usuarioActual.tienda;
+        const taller = parseInt(document.getElementById('ind-taller').value);
+        const auditoria = parseInt(document.getElementById('ind-auditoria').value);
+        const satisfaccion360 = parseFloat(document.getElementById('ind-360').value);
+        const denunciasAtendidas = parseInt(document.getElementById('ind-denuncias').value);
+        if (isNaN(taller) || isNaN(auditoria) || isNaN(satisfaccion360) || isNaN(denunciasAtendidas)) return alert("Valores inválidos");
+        datosApp.indicadores[tienda] = { taller, auditoria, satisfaccion360, denunciasAtendidas, fecha: new Date().toISOString() };
+        datosApp.semaforo[tienda] = actualizarSemaforoTienda(tienda);
+        guardarDatos();
+        const modalEl = document.getElementById('modalEditarIndicadores');
+        bootstrap.Modal.getInstance(modalEl).hide();
+        cargarIndicadores();
+        cargarPanel();
+    };
+}
 function cargarIndicadores() {
     const tienda = (usuarioActual.rol === 'supervisor') ? document.getElementById('selector-tienda').value : usuarioActual.tienda;
     const ind = datosApp.indicadores[tienda];
@@ -148,6 +178,7 @@ function cargarIndicadores() {
     if (usuarioActual.rol === 'supervisor') {
         btnEditar.style.display = 'block';
         btnEditar.onclick = () => {
+            crearModalIndicadores();
             document.getElementById('ind-taller').value = ind.taller;
             document.getElementById('ind-auditoria').value = ind.auditoria;
             document.getElementById('ind-360').value = ind.satisfaccion360;
@@ -163,14 +194,11 @@ function cargarCanal() {
     if (usuarioActual.rol === 'supervisor') {
         document.getElementById('gestion-denuncias').style.display = 'block';
         const tbody = document.getElementById('lista-denuncias');
-        const denunciasFiltradas = datosApp.denuncias.filter(d => d.tienda === document.getElementById('selector-tienda').value);
+        const tienda = document.getElementById('selector-tienda').value;
+        const denunciasFiltradas = datosApp.denuncias.filter(d => d.tienda === tienda);
         tbody.innerHTML = denunciasFiltradas.map(d => `
-            <tr>
-                <td>${new Date(d.fecha).toLocaleDateString()}</td>
-                <td>${d.descripcion.substring(0, 80)}...</td>
-                <td>${d.estado}</td>
-                <td><button class="btn btn-sm btn-success" onclick="cambiarEstadoDenuncia(${d.id}, 'resuelto')">Resolver</button></td>
-            </tr>
+            <tr><td>${new Date(d.fecha).toLocaleDateString()}</td><td>${d.descripcion.substring(0, 80)}...</td><td>${d.estado}</td>
+            <td><button class="btn btn-sm btn-success" onclick="cambiarEstadoDenuncia(${d.id}, 'resuelto')">Resolver</button></td></tr>
         `).join('');
     } else {
         document.getElementById('gestion-denuncias').style.display = 'none';
@@ -201,10 +229,8 @@ window.cambiarEstadoDenuncia = (id, estado) => {
 
 function cargarGestion() {
     if (usuarioActual.rol !== 'supervisor') return;
-    // Cargar selector de tiendas en formulario de creación
     const selectTienda = document.getElementById('newTienda');
     selectTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
-    // Lista de tiendas con opciones editar/eliminar
     const divTiendas = document.getElementById('lista-tiendas');
     divTiendas.innerHTML = datosApp.tiendas.map(t => `
         <div class="d-flex justify-content-between align-items-center mb-1">
@@ -215,7 +241,6 @@ function cargarGestion() {
             </div>
         </div>
     `).join('');
-    // Lista de usuarios
     const lista = document.getElementById('listaUsuarios');
     let html = '<table class="table table-sm table-bordered"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Tienda</th><th>Acciones</th></tr></thead><tbody>';
     for (const [user, data] of Object.entries(datosApp.usuarios)) {
@@ -234,7 +259,6 @@ function cargarGestion() {
     }
     html += '</tbody></table>';
     lista.innerHTML = html;
-    // Crear usuario
     document.getElementById('crearUsuarioForm').onsubmit = (e) => {
         e.preventDefault();
         const nombre = document.getElementById('newNombre').value.trim();
@@ -279,42 +303,80 @@ window.eliminarUsuarioGlobal = (user) => {
         cargarGestion();
     }
 };
-window.editarTienda = (tienda) => {
-    document.getElementById('editTiendaNombre').value = tienda;
-    const modal = new bootstrap.Modal(document.getElementById('modalEditarTienda'));
-    modal.show();
+
+// Modal dinámico para editar tienda
+let modalTiendaInstance = null;
+function crearModalTienda(tiendaActual, callback) {
+    if (document.getElementById('modalEditarTienda')) {
+        // Si ya existe, lo reutilizamos
+        const modalEl = document.getElementById('modalEditarTienda');
+        const input = document.getElementById('editTiendaNombre');
+        input.value = tiendaActual;
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+        return;
+    }
+    const modalHTML = `
+        <div class="modal fade" id="modalEditarTienda" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header"><h5>Editar tienda</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                    <div class="modal-body">
+                        <input type="text" id="editTiendaNombre" class="form-control" value="${tiendaActual}">
+                        <button id="guardarEditTienda" class="btn btn-d1 mt-2">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
     document.getElementById('guardarEditTienda').onclick = () => {
         const nuevo = document.getElementById('editTiendaNombre').value.trim();
-        if (nuevo && nuevo !== tienda) {
-            const idx = datosApp.tiendas.indexOf(tienda);
-            if (idx !== -1) datosApp.tiendas[idx] = nuevo;
-            // Actualizar referencias en usuarios
-            for (let u in datosApp.usuarios) {
-                if (datosApp.usuarios[u].tienda === tienda) datosApp.usuarios[u].tienda = nuevo;
-            }
-            // Actualizar indicadores, semáforo, etc.
-            datosApp.indicadores[nuevo] = datosApp.indicadores[tienda];
-            delete datosApp.indicadores[tienda];
-            datosApp.semaforo[nuevo] = datosApp.semaforo[tienda];
-            delete datosApp.semaforo[tienda];
-            guardarDatos();
+        if (nuevo && nuevo !== tiendaActual) {
+            callback(nuevo);
         }
-        modal.hide();
-        cargarGestion();
+        const modalEl = document.getElementById('modalEditarTienda');
+        bootstrap.Modal.getInstance(modalEl).hide();
+        modalEl.remove();
     };
+    const modal = new bootstrap.Modal(document.getElementById('modalEditarTienda'));
+    modal.show();
+}
+window.editarTienda = (tienda) => {
+    crearModalTienda(tienda, (nuevoNombre) => {
+        const idx = datosApp.tiendas.indexOf(tienda);
+        if (idx !== -1) datosApp.tiendas[idx] = nuevoNombre;
+        for (let u in datosApp.usuarios) {
+            if (datosApp.usuarios[u].tienda === tienda) datosApp.usuarios[u].tienda = nuevoNombre;
+        }
+        datosApp.indicadores[nuevoNombre] = datosApp.indicadores[tienda];
+        delete datosApp.indicadores[tienda];
+        datosApp.semaforo[nuevoNombre] = datosApp.semaforo[tienda];
+        delete datosApp.semaforo[tienda];
+        guardarDatos();
+        cargarGestion();
+        // Actualizar selector de tienda si está visible
+        const selTienda = document.getElementById('selector-tienda');
+        if (selTienda) {
+            const current = selTienda.value;
+            selTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
+            if (current === tienda) selTienda.value = nuevoNombre;
+        }
+    });
 };
 window.eliminarTienda = (tienda) => {
     if (confirm(`Eliminar tienda ${tienda}?`)) {
         datosApp.tiendas = datosApp.tiendas.filter(t => t !== tienda);
         guardarDatos();
         cargarGestion();
+        const selTienda = document.getElementById('selector-tienda');
+        if (selTienda && selTienda.value === tienda) selTienda.value = datosApp.tiendas[0];
     }
 };
 
 function cargarAuditorias() {
     if (usuarioActual.rol !== 'supervisor') return;
     const tienda = document.getElementById('selector-tienda').value;
-    // Lista de chequeo (simulada)
     const checklist = document.getElementById('checklist-items');
     checklist.innerHTML = `
         <div class="form-check"><input class="form-check-input" type="checkbox" id="chk1"> Cumplimiento horarios</div>
@@ -331,15 +393,15 @@ function cargarAuditorias() {
         guardarDatos();
         alert("Auditoría guardada");
         cargarIndicadores();
+        cargarPanel();
     };
-    // Cronograma
     const crono = datosApp.cronograma[tienda];
     const tablaCrono = document.getElementById('tabla-cronograma');
-    tablaCrono.innerHTML = crono.actividades.map(act => `
+    tablaCrono.innerHTML = crono.actividades.map((act, idx) => `
         <tr>
             <td>${act.semana}</td>
             <td>${act.nombre}</td>
-            <td><input type="checkbox" ${act.completada ? 'checked' : ''} onchange="toggleActividad('${tienda}', ${act.semana-1})"></td>
+            <td><input type="checkbox" ${act.completada ? 'checked' : ''} onchange="toggleActividad('${tienda}', ${idx})"></td>
         </tr>
     `).join('');
     document.getElementById('btn-reiniciar-cronograma').onclick = () => {
@@ -377,7 +439,7 @@ function cargarMiEvaluacion() {
     }
 }
 
-// ======================== LOGIN Y INICIALIZACIÓN ========================
+// LOGIN
 document.getElementById('loginForm').onsubmit = (e) => {
     e.preventDefault();
     const user = document.getElementById('loginUser').value;
@@ -410,5 +472,4 @@ document.getElementById('loginForm').onsubmit = (e) => {
     }
 };
 
-// Recargar datos al iniciar
 cargarDatos();
