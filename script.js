@@ -6,8 +6,9 @@ let datosApp = {
     semaforo: {},
     cronograma: {},
     denuncias: [],
-    evaluacionesDesempeno: {},
-    planesMejora: {}
+    evaluacionesDesempeno: {},   // estructura: { "usuario_trabajador": [ {actividad, nota, comentario, fecha, evaluador} ] }
+    planesMejora: {},
+    actividadesEvaluacion: []    // lista de títulos de actividades (strings)
 };
 
 function cargarDatos() {
@@ -27,6 +28,7 @@ function cargarDatos() {
         datosApp.denuncias = [];
         datosApp.evaluacionesDesempeno = {};
         datosApp.planesMejora = {};
+        datosApp.actividadesEvaluacion = ["Taller liderazgo", "Simulación casos", "Evaluación 360", "Trabajo en equipo"];
         const actividadesBase = [
             "Taller liderazgo ético", "Simulación de casos reales", "Evaluación 360°", "Auditorías sorpresa",
             "Semáforo laboral", "Canal de denuncias", "Rotación de roles", "Plan de mejora",
@@ -54,12 +56,6 @@ function actualizarSemaforoTienda(tienda) {
     if (puntaje >= 85) return "verde";
     if (puntaje >= 60) return "amarillo";
     return "rojo";
-}
-function recalcularTodosSemaforos() {
-    datosApp.tiendas.forEach(t => {
-        datosApp.semaforo[t] = actualizarSemaforoTienda(t);
-    });
-    guardarDatos();
 }
 
 let usuarioActual = null;
@@ -189,7 +185,6 @@ function cargarIndicadores() {
     }
 }
 
-// CANAL ÉTICO: supervisores solo gestionan, trabajadores solo envian
 function cargarCanal() {
     const esSupervisor = (usuarioActual.rol === 'supervisor');
     const formDenuncia = document.getElementById('form-denegocio');
@@ -206,9 +201,7 @@ function cargarCanal() {
                 <td>${new Date(d.fecha).toLocaleDateString()}</td>
                 <td>${d.descripcion.substring(0, 80)}${d.descripcion.length > 80 ? '…' : ''}</td>
                 <td>${d.estado}</td>
-                <td>
-                    ${d.estado !== 'resuelto' ? `<button class="btn btn-sm btn-success" onclick="cambiarEstadoDenuncia(${d.id}, 'resuelto')">Resolver</button>` : 'Resuelta'}
-                </td>
+                <td>${d.estado !== 'resuelto' ? `<button class="btn btn-sm btn-success" onclick="cambiarEstadoDenuncia(${d.id}, 'resuelto')">Resolver</button>` : 'Resuelta'}</td>
             </tr>
         `).join('');
         if (denunciasFiltradas.length === 0) {
@@ -244,8 +237,10 @@ window.cambiarEstadoDenuncia = (id, estado) => {
     cargarCanal();
 };
 
+// GESTIÓN COMPLETA (usuarios, tiendas, actividades evaluación y calificación)
 function cargarGestion() {
     if (usuarioActual.rol !== 'supervisor') return;
+    // 1. Usuarios y tiendas (igual que antes)
     const selectTienda = document.getElementById('newTienda');
     selectTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
     const divTiendas = document.getElementById('lista-tiendas');
@@ -301,7 +296,125 @@ function cargarGestion() {
             cargarGestion();
         } else alert("Nombre inválido o duplicado");
     };
+
+    // 2. Gestión de actividades de evaluación
+    const listaActividades = document.getElementById('lista-actividades');
+    function renderActividades() {
+        listaActividades.innerHTML = datosApp.actividadesEvaluacion.map((act, idx) => `
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span>${act}</span>
+                <button class="btn btn-sm btn-outline-danger" onclick="eliminarActividad(${idx})">Eliminar</button>
+            </div>
+        `).join('');
+    }
+    window.eliminarActividad = (idx) => {
+        datosApp.actividadesEvaluacion.splice(idx, 1);
+        guardarDatos();
+        renderActividades();
+        // Actualizar selects de calificación
+        llenarSelectActividades();
+    };
+    document.getElementById('btn-agregar-actividad').onclick = () => {
+        const nombre = document.getElementById('nuevaActividadNombre').value.trim();
+        if (nombre && !datosApp.actividadesEvaluacion.includes(nombre)) {
+            datosApp.actividadesEvaluacion.push(nombre);
+            guardarDatos();
+            renderActividades();
+            llenarSelectActividades();
+            document.getElementById('nuevaActividadNombre').value = '';
+        } else alert("Nombre inválido o duplicado");
+    };
+    renderActividades();
+
+    // 3. Calificar trabajadores
+    function llenarSelectActividades() {
+        const selAct = document.getElementById('selActividadEvaluacion');
+        selAct.innerHTML = '<option value="">Seleccione actividad</option>' + datosApp.actividadesEvaluacion.map(a => `<option value="${a}">${a}</option>`).join('');
+    }
+    function llenarSelectTiendasEvaluacion() {
+        const selTienda = document.getElementById('selTiendaEvaluacion');
+        selTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
+    }
+    llenarSelectActividades();
+    llenarSelectTiendasEvaluacion();
+
+    function cargarTablaCalificaciones() {
+        const actividad = document.getElementById('selActividadEvaluacion').value;
+        const tienda = document.getElementById('selTiendaEvaluacion').value;
+        const tbody = document.getElementById('tablaCalificacionesBody');
+        if (!actividad || !tienda) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center">Seleccione actividad y tienda</td></tr>';
+            return;
+        }
+        // Obtener trabajadores de esa tienda (con rol 'trabajador')
+        const trabajadores = Object.entries(datosApp.usuarios).filter(([user, data]) => data.rol === 'trabajador' && data.tienda === tienda);
+        if (trabajadores.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay trabajadores en esta tienda</td></tr>';
+            return;
+        }
+        tbody.innerHTML = '';
+        trabajadores.forEach(([user, data]) => {
+            // Buscar evaluación existente para este trabajador y actividad
+            const evaluacionesUsuario = datosApp.evaluacionesDesempeno[user] || [];
+            const evalExistente = evaluacionesUsuario.find(e => e.actividad === actividad);
+            const nota = evalExistente ? evalExistente.nota : '';
+            const comentario = evalExistente ? evalExistente.comentario : '';
+            const fecha = evalExistente ? evalExistente.fecha.split('T')[0] : new Date().toISOString().split('T')[0];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${data.nombre} (${user})</td>
+                <td><input type="number" step="0.1" min="0" max="5" class="form-control form-control-sm nota-input" data-user="${user}" value="${nota}"></td>
+                <td><input type="text" class="form-control form-control-sm comentario-input" data-user="${user}" value="${comentario.replace(/"/g, '&quot;')}"></td>
+                <td><input type="date" class="form-control form-control-sm fecha-input" data-user="${user}" value="${fecha}"></td>
+            `;
+            tbody.appendChild(row);
+        });
+        // Guardar todas las notas al hacer clic en el botón
+        const btnGuardar = document.getElementById('btnGuardarCalificaciones');
+        const nuevoBtn = btnGuardar.cloneNode(true);
+        btnGuardar.parentNode.replaceChild(nuevoBtn, btnGuardar);
+        nuevoBtn.onclick = () => {
+            const actividadSeleccionada = document.getElementById('selActividadEvaluacion').value;
+            const tiendaSeleccionada = document.getElementById('selTiendaEvaluacion').value;
+            if (!actividadSeleccionada || !tiendaSeleccionada) return alert("Seleccione actividad y tienda");
+            // Recoger todas las notas
+            const notas = [];
+            document.querySelectorAll('#tablaCalificacionesBody .nota-input').forEach(input => {
+                const user = input.dataset.user;
+                const nota = parseFloat(input.value);
+                const comentario = input.parentElement.parentElement.querySelector('.comentario-input').value;
+                const fecha = input.parentElement.parentElement.querySelector('.fecha-input').value;
+                if (!isNaN(nota) && nota >= 0 && nota <= 5) {
+                    notas.push({ user, nota, comentario, fecha });
+                }
+            });
+            // Guardar en evaluacionesDesempeno
+            for (let n of notas) {
+                if (!datosApp.evaluacionesDesempeno[n.user]) datosApp.evaluacionesDesempeno[n.user] = [];
+                // Reemplazar si ya existe para esa actividad
+                const idx = datosApp.evaluacionesDesempeno[n.user].findIndex(e => e.actividad === actividadSeleccionada);
+                const nuevaEval = {
+                    actividad: actividadSeleccionada,
+                    nota: n.nota,
+                    comentario: n.comentario,
+                    fecha: n.fecha,
+                    evaluador: usuarioActual.user
+                };
+                if (idx !== -1) {
+                    datosApp.evaluacionesDesempeno[n.user][idx] = nuevaEval;
+                } else {
+                    datosApp.evaluacionesDesempeno[n.user].push(nuevaEval);
+                }
+            }
+            guardarDatos();
+            alert("Calificaciones guardadas");
+            cargarTablaCalificaciones(); // refrescar
+        };
+    }
+    document.getElementById('selActividadEvaluacion').onchange = cargarTablaCalificaciones;
+    document.getElementById('selTiendaEvaluacion').onchange = cargarTablaCalificaciones;
 }
+
 window.editarUsuarioGlobal = (user) => {
     const u = datosApp.usuarios[user];
     const nuevoNombre = prompt("Nuevo nombre", u.nombre);
@@ -321,14 +434,11 @@ window.eliminarUsuarioGlobal = (user) => {
     }
 };
 
-// Modal dinámico para editar tienda
 function crearModalTienda(tiendaActual, callback) {
     if (document.getElementById('modalEditarTienda')) {
         const modalEl = document.getElementById('modalEditarTienda');
-        const input = document.getElementById('editTiendaNombre');
-        input.value = tiendaActual;
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
+        document.getElementById('editTiendaNombre').value = tiendaActual;
+        new bootstrap.Modal(modalEl).show();
         return;
     }
     const modalHTML = `
@@ -347,15 +457,12 @@ function crearModalTienda(tiendaActual, callback) {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     document.getElementById('guardarEditTienda').onclick = () => {
         const nuevo = document.getElementById('editTiendaNombre').value.trim();
-        if (nuevo && nuevo !== tiendaActual) {
-            callback(nuevo);
-        }
+        if (nuevo && nuevo !== tiendaActual) callback(nuevo);
         const modalEl = document.getElementById('modalEditarTienda');
         bootstrap.Modal.getInstance(modalEl).hide();
         modalEl.remove();
     };
-    const modal = new bootstrap.Modal(document.getElementById('modalEditarTienda'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('modalEditarTienda')).show();
 }
 window.editarTienda = (tienda) => {
     crearModalTienda(tienda, (nuevoNombre) => {
@@ -441,16 +548,23 @@ window.toggleActividad = (tienda, idx) => {
 };
 
 function cargarMiEvaluacion() {
-    const evalUser = datosApp.evaluacionesDesempeno[usuarioActual.user];
-    if (evalUser) {
-        document.getElementById('evaluacion-trabajador-contenido').innerHTML = `
-            <p><strong>Calificación:</strong> ${evalUser.calificacion}/5</p>
-            <p><strong>Comentarios:</strong> ${evalUser.comentarios}</p>
-            <p><strong>Fecha:</strong> ${new Date(evalUser.fecha).toLocaleDateString()}</p>
-        `;
-    } else {
-        document.getElementById('evaluacion-trabajador-contenido').innerHTML = '<p>Aún no hay evaluación de desempeño.</p>';
+    const evaluaciones = datosApp.evaluacionesDesempeno[usuarioActual.user] || [];
+    if (evaluaciones.length === 0) {
+        document.getElementById('evaluacion-trabajador-contenido').innerHTML = '<p>Aún no hay evaluaciones de desempeño.</p>';
+        return;
     }
+    let html = '<div class="table-responsive"><table class="table table-bordered"><thead><tr><th>Actividad</th><th>Nota</th><th>Comentario</th><th>Fecha</th><th>Evaluador</th></tr></thead><tbody>';
+    evaluaciones.forEach(e => {
+        html += `<tr>
+            <td>${e.actividad}</td>
+            <td>${e.nota}/5</td>
+            <td>${e.comentario || '—'}</td>
+            <td>${new Date(e.fecha).toLocaleDateString()}</td>
+            <td>${e.evaluador}</td>
+        </tr>`;
+    });
+    html += '</tbody></table></div>';
+    document.getElementById('evaluacion-trabajador-contenido').innerHTML = html;
 }
 
 // LOGIN
