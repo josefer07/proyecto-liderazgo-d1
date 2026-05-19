@@ -20,15 +20,12 @@ body { background-color: #ffffff; font-family: 'Segoe UI', sans-serif; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
 #selector-tienda-container { background: #f8f9fa; padding: 0.5rem; border-radius: 8px; }
+.semaforo-verde { background-color: #198754; }
+.semaforo-amarillo { background-color: #ffc107; color: black; }
+.semaforo-rojo { background-color: #dc3545; }
 
-/* Estados del semáforo: el activo mantiene su color original, los inactivos se ponen grises */
-.semaforo-verde-activo { background-color: #198754 !important; }
-.semaforo-amarillo-activo { background-color: #ffc107 !important; color: black !important; }
-.semaforo-rojo-activo { background-color: #dc3545 !important; }
-
+/* Nueva clase para los estados inactivos del semáforo */
 .semaforo-inactivo {
-    background-color: #adb5bd !important;
-    color: #6c757d !important;
-    filter: none;
-    opacity: 0.7;
+    opacity: 0.3;
+    filter: grayscale(0.5);
 }
