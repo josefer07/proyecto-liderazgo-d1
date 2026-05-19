@@ -11,15 +11,23 @@ function showTab(view, event) {
 // Cargar o inicializar usuarios en localStorage (simula archivo aparte)
 function cargarUsuarios() {
     let usuarios = localStorage.getItem('usuariosD1');
-    if (!usuarios) {
-        // Usuario inicial: jefe (Supervisor / Jefe de Tienda)
-        const inicial = {
-            "jefe": { nombre: "Jefe Principal", rol: "Supervisor / Jefe de Tienda", pass: "1234" }
-        };
-        localStorage.setItem('usuariosD1', JSON.stringify(inicial));
-        return inicial;
+    let usuariosObj = usuarios ? JSON.parse(usuarios) : {};
+    
+    // GARANTIZAR que el usuario "jefe" exista con contraseña "1234"
+    if (!usuariosObj["jefe"]) {
+        usuariosObj["jefe"] = { nombre: "Jefe Principal", rol: "Supervisor / Jefe de Tienda", pass: "1234" };
+        localStorage.setItem('usuariosD1', JSON.stringify(usuariosObj));
+        console.log("Usuario jefe creado por defecto");
+    } else {
+        // Si ya existe pero la contraseña no es 1234, la forzamos (por si acaso)
+        if (usuariosObj["jefe"].pass !== "1234") {
+            usuariosObj["jefe"].pass = "1234";
+            localStorage.setItem('usuariosD1', JSON.stringify(usuariosObj));
+            console.log("Contraseña del jefe restablecida a 1234");
+        }
     }
-    return JSON.parse(usuarios);
+    
+    return JSON.parse(localStorage.getItem('usuariosD1'));
 }
 
 // Guardar usuarios
@@ -27,13 +35,13 @@ function guardarUsuarios(usuarios) {
     localStorage.setItem('usuariosD1', JSON.stringify(usuarios));
 }
 
-// Actualizar la lista de usuarios en la vista de gestión (solo para supervisores)
+// Actualizar la lista de usuarios en la vista de gestión
 function actualizarListaUsuarios(usuarios, usuarioActual) {
     const listaDiv = document.getElementById('listaUsuarios');
     if (!listaDiv) return;
     let html = '<table class="table table-sm table-bordered"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th></tr></thead><tbody>';
     for (const [user, data] of Object.entries(usuarios)) {
-        if (user !== usuarioActual) { // no mostrar al propio jefe en la lista para evitar autocreación
+        if (user !== usuarioActual) {
             html += `<tr><td>${user}</td><td>${data.nombre}</td><td>${data.rol}</td></tr>`;
         }
     }
@@ -46,7 +54,6 @@ function construirMenu(rol) {
     const menuContainer = document.getElementById('menu-lateral');
     if (!menuContainer) return;
     
-    // Botones base para todos
     let botones = `
         <button class="nav-link active mb-2 text-start d-flex align-items-center" onclick="showTab('home', event)">
             <span class="material-icons me-2">dashboard</span> PANEL
@@ -59,7 +66,6 @@ function construirMenu(rol) {
         </button>
     `;
     
-    // Si es Supervisor / Jefe de Tienda, añadir botón de Gestión
     if (rol === "Supervisor / Jefe de Tienda") {
         botones += `
             <button class="nav-link mb-2 text-start d-flex align-items-center" onclick="showTab('gestion', event)">
@@ -70,23 +76,19 @@ function construirMenu(rol) {
     
     menuContainer.innerHTML = botones;
     
-    // Activar la primera pestaña (home) por defecto
+    // Activar home por defecto
     setTimeout(() => {
         const firstBtn = menuContainer.querySelector('.nav-link');
         if (firstBtn) firstBtn.classList.add('active');
     }, 0);
 }
 
-// Inicializar eventos después del login
+// Inicializar dashboard después del login
 function initDashboard(usuarioActual, rolActual, nombreActual) {
-    // Mostrar nombre y rol
     document.getElementById('display-name').innerText = `¡Bienvenido, ${nombreActual}!`;
     document.getElementById('display-role').innerText = rolActual;
-    
-    // Construir menú según rol
     construirMenu(rolActual);
     
-    // Si es supervisor, cargar la lista de usuarios y configurar el formulario de creación
     if (rolActual === "Supervisor / Jefe de Tienda") {
         const usuarios = cargarUsuarios();
         actualizarListaUsuarios(usuarios, usuarioActual);
@@ -127,7 +129,7 @@ document.getElementById('loginForm').onsubmit = (e) => {
     const u = document.getElementById('loginUser').value;
     const p = document.getElementById('loginPass').value;
     
-    const usuarios = cargarUsuarios();
+    const usuarios = cargarUsuarios(); // esto ya garantiza que jefe existe
     
     if (usuarios[u] && usuarios[u].pass === p) {
         const userData = usuarios[u];
