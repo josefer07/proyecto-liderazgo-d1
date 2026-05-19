@@ -43,7 +43,6 @@
             </nav>
 
             <main class="col-md-9 col-lg-10 pt-2 pb-2 pe-4 ps-4">
-                <!-- Selector de tienda (solo supervisores) -->
                 <div id="selector-tienda-container" class="mb-3" style="display: none;">
                     <label class="fw-bold">Tienda:</label>
                     <select id="selector-tienda" class="form-select w-auto d-inline-block ms-2"></select>
@@ -97,12 +96,10 @@
                     <div class="card p-4 border-0 shadow-sm border-top border-warning border-5">
                         <h4 class="fw-bold d1-blue-text text-center mb-3">CANAL DE DENUNCIAS CONFIDENCIAL</h4>
                         <p class="text-center text-muted">Utilice este medio para reportar situaciones de abuso o acoso de forma anónima.</p>
-                        <!-- Formulario para trabajadores (solo ellos lo ven) -->
                         <div id="form-denegocio" class="col-md-8 mx-auto">
                             <textarea id="denuncia-texto" class="form-control mb-3" rows="4" placeholder="Describa la situación detalladamente..."></textarea>
                             <button id="btn-enviar-denuncia" class="btn btn-d1 w-100">ENVIAR REPORTE</button>
                         </div>
-                        <!-- Gestión para supervisores (solo ellos lo ven) -->
                         <div id="gestion-denuncias" class="mt-5" style="display: none;">
                             <hr>
                             <h5>Denuncias recibidas</h5>
@@ -116,37 +113,86 @@
                     </div>
                 </div>
 
-                <!-- GESTIÓN DE USUARIOS (solo supervisores) -->
+                <!-- GESTIÓN DE USUARIOS, TIENDAS Y EVALUACIONES -->
                 <div id="view-gestion" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-success border-5">
-                        <h4 class="fw-bold d1-blue-text text-center mb-3">GESTIÓN DE TRABAJADORES Y SUPERVISORES</h4>
-                        <div class="col-md-8 mx-auto">
-                            <form id="crearUsuarioForm">
-                                <input type="text" id="newNombre" class="form-control mb-2" placeholder="Nombre completo" required>
-                                <input type="text" id="newUser" class="form-control mb-2" placeholder="Usuario" required>
-                                <input type="password" id="newPass" class="form-control mb-2" placeholder="Contraseña" required>
-                                <select id="newRole" class="form-select mb-2">
-                                    <option value="trabajador">Trabajador Operativo</option>
-                                    <option value="supervisor">Supervisor / Jefe de Tienda</option>
-                                </select>
-                                <select id="newTienda" class="form-select mb-3"></select>
-                                <button type="submit" class="btn btn-d1 w-100">CREAR CUENTA</button>
-                            </form>
-                            <hr>
-                            <h5>Gestionar Tiendas</h5>
-                            <div class="input-group mb-3">
-                                <input type="text" id="nuevaTiendaNombre" class="form-control" placeholder="Nueva tienda">
-                                <button id="btn-agregar-tienda" class="btn btn-outline-primary">Agregar</button>
+                        <h4 class="fw-bold d1-blue-text text-center mb-3">GESTIÓN ADMINISTRATIVA</h4>
+                        
+                        <!-- Sección 1: Usuarios y tiendas (como antes) -->
+                        <div class="mb-4">
+                            <h5>Usuarios y Tiendas</h5>
+                            <div class="col-md-8 mx-auto">
+                                <form id="crearUsuarioForm">
+                                    <input type="text" id="newNombre" class="form-control mb-2" placeholder="Nombre completo" required>
+                                    <input type="text" id="newUser" class="form-control mb-2" placeholder="Usuario" required>
+                                    <input type="password" id="newPass" class="form-control mb-2" placeholder="Contraseña" required>
+                                    <select id="newRole" class="form-select mb-2">
+                                        <option value="trabajador">Trabajador Operativo</option>
+                                        <option value="supervisor">Supervisor / Jefe de Tienda</option>
+                                    </select>
+                                    <select id="newTienda" class="form-select mb-3"></select>
+                                    <button type="submit" class="btn btn-d1 w-100">CREAR CUENTA</button>
+                                </form>
+                                <hr>
+                                <div class="input-group mb-3">
+                                    <input type="text" id="nuevaTiendaNombre" class="form-control" placeholder="Nueva tienda">
+                                    <button id="btn-agregar-tienda" class="btn btn-outline-primary">Agregar</button>
+                                </div>
+                                <div id="lista-tiendas" class="mb-3"></div>
+                                <div id="listaUsuarios" class="table-responsive"></div>
                             </div>
-                            <div id="lista-tiendas" class="mb-3"></div>
-                            <hr>
-                            <h5>Usuarios existentes</h5>
-                            <div id="listaUsuarios" class="table-responsive"></div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Sección 2: Gestionar actividades de evaluación -->
+                        <div class="mb-4">
+                            <h5>Actividades de Evaluación</h5>
+                            <div class="col-md-8 mx-auto">
+                                <div class="input-group mb-3">
+                                    <input type="text" id="nuevaActividadNombre" class="form-control" placeholder="Nombre de la actividad (ej. Taller liderazgo)">
+                                    <button id="btn-agregar-actividad" class="btn btn-outline-success">Agregar actividad</button>
+                                </div>
+                                <div id="lista-actividades" class="mb-2"></div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Sección 3: Calificar trabajadores por actividad y tienda -->
+                        <div>
+                            <h5>Calificar Trabajadores</h5>
+                            <div class="col-md-8 mx-auto">
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label>Actividad</label>
+                                        <select id="selActividadEvaluacion" class="form-select"></select>
+                                    </div>
+                                    <div class="col">
+                                        <label>Tienda</label>
+                                        <select id="selTiendaEvaluacion" class="form-select"></select>
+                                    </div>
+                                </div>
+                                <div id="tablaCalificacionesContainer" class="table-responsive">
+                                    <table class="table table-bordered table-sm">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Trabajador</th>
+                                                <th>Nota (1-5)</th>
+                                                <th>Comentario</th>
+                                                <th>Fecha evaluación</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaCalificacionesBody"></tbody>
+                                    </table>
+                                    <button id="btnGuardarCalificaciones" class="btn btn-d1">Guardar todas las notas</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- AUDITORÍAS Y MEJORA (solo supervisores) -->
+                <!-- AUDITORÍAS Y MEJORA -->
                 <div id="view-auditorias" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-info border-5">
                         <h4 class="fw-bold d1-blue-text text-center mb-3">Auditorías y Plan de Mejora</h4>
@@ -177,10 +223,10 @@
                     </div>
                 </div>
 
-                <!-- MI EVALUACIÓN (solo trabajadores) -->
+                <!-- MI EVALUACIÓN (trabajador) -->
                 <div id="view-mi-evaluacion" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-secondary border-5">
-                        <h4 class="fw-bold d1-blue-text text-center mb-3">Mi Evaluación de Desempeño</h4>
+                        <h4 class="fw-bold d1-blue-text text-center mb-3">Mis Evaluaciones de Desempeño</h4>
                         <div id="evaluacion-trabajador-contenido"></div>
                     </div>
                 </div>
