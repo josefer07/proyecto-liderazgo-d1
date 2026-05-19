@@ -19,7 +19,6 @@ body { background-color: #ffffff; font-family: 'Segoe UI', sans-serif; }
 .sidebar-nav { min-height: auto; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Estilos extra */
 #selector-tienda-container { background: #f8f9fa; padding: 0.5rem; border-radius: 8px; }
 .semaforo-verde { background-color: #198754; }
 .semaforo-amarillo { background-color: #ffc107; color: black; }
