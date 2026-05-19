@@ -6,15 +6,17 @@ let datosApp = {
     semaforo: {},
     cronograma: {},
     denuncias: [],
-    evaluacionesDesempeno: {},   // estructura: { "usuario_trabajador": [ {actividad, nota, comentario, fecha, evaluador} ] }
+    evaluacionesDesempeno: {},
     planesMejora: {},
-    actividadesEvaluacion: []    // lista de títulos de actividades (strings)
+    actividadesEvaluacion: []
 };
 
 function cargarDatos() {
     const local = localStorage.getItem('appD1');
     if (local) {
         datosApp = JSON.parse(local);
+        // Asegurar que actividadesEvaluacion exista
+        if (!datosApp.actividadesEvaluacion) datosApp.actividadesEvaluacion = [];
     } else {
         datosApp.usuarios = { "jefe": { nombre: "Jefe Principal", rol: "supervisor", pass: "1234", tienda: "Central" } };
         datosApp.tiendas = ["Central", "Tienda Norte", "Tienda Sur"];
@@ -120,7 +122,6 @@ function cargarPanel() {
     document.getElementById('proximas-actividades').innerHTML = prox ? `<ul>${prox}</ul>` : '<p>¡Programa completado!</p>';
 }
 
-// Modal dinámico para indicadores
 function crearModalIndicadores() {
     if (document.getElementById('modalEditarIndicadores')) return;
     const modalHTML = `
@@ -237,10 +238,11 @@ window.cambiarEstadoDenuncia = (id, estado) => {
     cargarCanal();
 };
 
-// GESTIÓN COMPLETA (usuarios, tiendas, actividades evaluación y calificación)
+// GESTIÓN COMPLETA (CORREGIDA)
 function cargarGestion() {
     if (usuarioActual.rol !== 'supervisor') return;
-    // 1. Usuarios y tiendas (igual que antes)
+    
+    // ---------- 1. Usuarios y Tiendas ----------
     const selectTienda = document.getElementById('newTienda');
     selectTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
     const divTiendas = document.getElementById('lista-tiendas');
@@ -297,7 +299,7 @@ function cargarGestion() {
         } else alert("Nombre inválido o duplicado");
     };
 
-    // 2. Gestión de actividades de evaluación
+    // ---------- 2. Gestión de actividades de evaluación ----------
     const listaActividades = document.getElementById('lista-actividades');
     function renderActividades() {
         listaActividades.innerHTML = datosApp.actividadesEvaluacion.map((act, idx) => `
@@ -311,7 +313,6 @@ function cargarGestion() {
         datosApp.actividadesEvaluacion.splice(idx, 1);
         guardarDatos();
         renderActividades();
-        // Actualizar selects de calificación
         llenarSelectActividades();
     };
     document.getElementById('btn-agregar-actividad').onclick = () => {
@@ -326,14 +327,18 @@ function cargarGestion() {
     };
     renderActividades();
 
-    // 3. Calificar trabajadores
+    // ---------- 3. Calificar trabajadores (CORREGIDO) ----------
     function llenarSelectActividades() {
         const selAct = document.getElementById('selActividadEvaluacion');
-        selAct.innerHTML = '<option value="">Seleccione actividad</option>' + datosApp.actividadesEvaluacion.map(a => `<option value="${a}">${a}</option>`).join('');
+        if (selAct) {
+            selAct.innerHTML = '<option value="">Seleccione actividad</option>' + datosApp.actividadesEvaluacion.map(a => `<option value="${a}">${a}</option>`).join('');
+        }
     }
     function llenarSelectTiendasEvaluacion() {
         const selTienda = document.getElementById('selTiendaEvaluacion');
-        selTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
+        if (selTienda) {
+            selTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
     }
     llenarSelectActividades();
     llenarSelectTiendasEvaluacion();
@@ -346,7 +351,7 @@ function cargarGestion() {
             tbody.innerHTML = '<tr><td colspan="4" class="text-center">Seleccione actividad y tienda</td></tr>';
             return;
         }
-        // Obtener trabajadores de esa tienda (con rol 'trabajador')
+        // Filtrar trabajadores por tienda
         const trabajadores = Object.entries(datosApp.usuarios).filter(([user, data]) => data.rol === 'trabajador' && data.tienda === tienda);
         if (trabajadores.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay trabajadores en esta tienda</td></tr>';
@@ -354,7 +359,6 @@ function cargarGestion() {
         }
         tbody.innerHTML = '';
         trabajadores.forEach(([user, data]) => {
-            // Buscar evaluación existente para este trabajador y actividad
             const evaluacionesUsuario = datosApp.evaluacionesDesempeno[user] || [];
             const evalExistente = evaluacionesUsuario.find(e => e.actividad === actividad);
             const nota = evalExistente ? evalExistente.nota : '';
@@ -369,50 +373,49 @@ function cargarGestion() {
             `;
             tbody.appendChild(row);
         });
-        // Guardar todas las notas al hacer clic en el botón
-        const btnGuardar = document.getElementById('btnGuardarCalificaciones');
-        const nuevoBtn = btnGuardar.cloneNode(true);
-        btnGuardar.parentNode.replaceChild(nuevoBtn, btnGuardar);
-        nuevoBtn.onclick = () => {
-            const actividadSeleccionada = document.getElementById('selActividadEvaluacion').value;
-            const tiendaSeleccionada = document.getElementById('selTiendaEvaluacion').value;
-            if (!actividadSeleccionada || !tiendaSeleccionada) return alert("Seleccione actividad y tienda");
-            // Recoger todas las notas
-            const notas = [];
-            document.querySelectorAll('#tablaCalificacionesBody .nota-input').forEach(input => {
-                const user = input.dataset.user;
-                const nota = parseFloat(input.value);
-                const comentario = input.parentElement.parentElement.querySelector('.comentario-input').value;
-                const fecha = input.parentElement.parentElement.querySelector('.fecha-input').value;
-                if (!isNaN(nota) && nota >= 0 && nota <= 5) {
-                    notas.push({ user, nota, comentario, fecha });
-                }
-            });
-            // Guardar en evaluacionesDesempeno
-            for (let n of notas) {
-                if (!datosApp.evaluacionesDesempeno[n.user]) datosApp.evaluacionesDesempeno[n.user] = [];
-                // Reemplazar si ya existe para esa actividad
-                const idx = datosApp.evaluacionesDesempeno[n.user].findIndex(e => e.actividad === actividadSeleccionada);
-                const nuevaEval = {
-                    actividad: actividadSeleccionada,
-                    nota: n.nota,
-                    comentario: n.comentario,
-                    fecha: n.fecha,
-                    evaluador: usuarioActual.user
-                };
-                if (idx !== -1) {
-                    datosApp.evaluacionesDesempeno[n.user][idx] = nuevaEval;
-                } else {
-                    datosApp.evaluacionesDesempeno[n.user].push(nuevaEval);
-                }
-            }
-            guardarDatos();
-            alert("Calificaciones guardadas");
-            cargarTablaCalificaciones(); // refrescar
-        };
     }
     document.getElementById('selActividadEvaluacion').onchange = cargarTablaCalificaciones;
     document.getElementById('selTiendaEvaluacion').onchange = cargarTablaCalificaciones;
+
+    // Botón guardar (se reemplaza cada vez para evitar múltiples listeners)
+    const btnGuardar = document.getElementById('btnGuardarCalificaciones');
+    const nuevoBtnGuardar = btnGuardar.cloneNode(true);
+    btnGuardar.parentNode.replaceChild(nuevoBtnGuardar, btnGuardar);
+    nuevoBtnGuardar.onclick = () => {
+        const actividad = document.getElementById('selActividadEvaluacion').value;
+        const tienda = document.getElementById('selTiendaEvaluacion').value;
+        if (!actividad || !tienda) return alert("Seleccione actividad y tienda");
+        // Recoger todas las notas de la tabla actual
+        const notas = [];
+        document.querySelectorAll('#tablaCalificacionesBody .nota-input').forEach(input => {
+            const user = input.dataset.user;
+            const nota = parseFloat(input.value);
+            const comentario = input.parentElement.parentElement.querySelector('.comentario-input').value;
+            const fecha = input.parentElement.parentElement.querySelector('.fecha-input').value;
+            if (!isNaN(nota) && nota >= 0 && nota <= 5) {
+                notas.push({ user, nota, comentario, fecha });
+            }
+        });
+        for (let n of notas) {
+            if (!datosApp.evaluacionesDesempeno[n.user]) datosApp.evaluacionesDesempeno[n.user] = [];
+            const idx = datosApp.evaluacionesDesempeno[n.user].findIndex(e => e.actividad === actividad);
+            const nuevaEval = {
+                actividad: actividad,
+                nota: n.nota,
+                comentario: n.comentario,
+                fecha: n.fecha,
+                evaluador: usuarioActual.user
+            };
+            if (idx !== -1) {
+                datosApp.evaluacionesDesempeno[n.user][idx] = nuevaEval;
+            } else {
+                datosApp.evaluacionesDesempeno[n.user].push(nuevaEval);
+            }
+        }
+        guardarDatos();
+        alert("Calificaciones guardadas");
+        cargarTablaCalificaciones(); // refrescar
+    };
 }
 
 window.editarUsuarioGlobal = (user) => {
