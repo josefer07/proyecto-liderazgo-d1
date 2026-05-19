@@ -52,9 +52,11 @@ function guardarDatos() {
 
 // --- Funciones para actualizar indicadores desde actividades ---
 function recalcularIndicadoresDesdeActividades(tienda) {
+    // Obtener todos los trabajadores de esta tienda
     const trabajadores = Object.entries(datosApp.usuarios).filter(([user, data]) => data.rol === 'trabajador' && data.tienda === tienda);
     if (trabajadores.length === 0) return;
 
+    // Calcular promedio para "Taller liderazgo" (actividad exacta)
     let sumaTaller = 0, contTaller = 0;
     let suma360 = 0, cont360 = 0;
     for (let [user, _] of trabajadores) {
@@ -70,9 +72,10 @@ function recalcularIndicadoresDesdeActividades(tienda) {
             cont360++;
         }
     }
-    const nuevoTaller = contTaller > 0 ? Math.round((sumaTaller / contTaller) * 20) : 0;
+    const nuevoTaller = contTaller > 0 ? Math.round((sumaTaller / contTaller) * 20) : 0; // nota sobre 5 -> porcentaje
     const nuevaSatisfaccion360 = cont360 > 0 ? parseFloat((suma360 / cont360).toFixed(1)) : 0;
 
+    // Actualizar indicadores en memoria
     if (datosApp.indicadores[tienda]) {
         datosApp.indicadores[tienda].taller = nuevoTaller;
         datosApp.indicadores[tienda].satisfaccion360 = nuevaSatisfaccion360;
@@ -86,6 +89,7 @@ function recalcularIndicadoresDesdeActividades(tienda) {
             fecha: new Date().toISOString()
         };
     }
+    // Recalcular semáforo y guardar
     const nuevoSemaforo = actualizarSemaforoTienda(tienda);
     datosApp.semaforo[tienda] = nuevoSemaforo;
     guardarDatos();
@@ -141,19 +145,21 @@ function showTab(view, event) {
     if (view === 'mi-evaluacion') cargarMiEvaluacion();
 }
 
-// ======================== PANEL (con semáforo mejorado: activo con color, inactivo en gris) ========================
+// ======================== PANEL (con semáforo mejorado) ========================
 function cargarPanel() {
     const tienda = (usuarioActual.rol === 'supervisor') ? document.getElementById('selector-tienda').value : usuarioActual.tienda;
     const estado = datosApp.semaforo[tienda] || 'rojo';
     const semaforoDiv = document.getElementById('semaforo-dinamico');
-    // Definir clases según estado
-    const claseVerde = (estado === 'verde') ? 'bg-success' : 'semaforo-inactivo';
-    const claseAmarillo = (estado === 'amarillo') ? 'bg-warning text-dark' : 'semaforo-inactivo';
-    const claseRojo = (estado === 'rojo') ? 'bg-danger' : 'semaforo-inactivo';
     semaforoDiv.innerHTML = `
-        <div class="col-4"><div class="p-3 rounded shadow-sm ${claseVerde}">ÓPTIMO</div></div>
-        <div class="col-4"><div class="p-3 rounded shadow-sm ${claseAmarillo}">RIESGO</div></div>
-        <div class="col-4"><div class="p-3 rounded shadow-sm ${claseRojo}">CRÍTICO</div></div>
+        <div class="col-4">
+            <div class="p-3 bg-success rounded shadow-sm ${estado !== 'verde' ? 'semaforo-inactivo' : ''}">ÓPTIMO</div>
+        </div>
+        <div class="col-4">
+            <div class="p-3 bg-warning text-dark rounded shadow-sm ${estado !== 'amarillo' ? 'semaforo-inactivo' : ''}">RIESGO</div>
+        </div>
+        <div class="col-4">
+            <div class="p-3 bg-danger rounded shadow-sm ${estado !== 'rojo' ? 'semaforo-inactivo' : ''}">CRÍTICO</div>
+        </div>
     `;
     const ind = datosApp.indicadores[tienda];
     document.getElementById('kpi-resumen').innerHTML = `
@@ -174,10 +180,10 @@ function cargarIndicadores() {
     const ind = datosApp.indicadores[tienda];
     const tbody = document.querySelector('#tabla-indicadores tbody');
     tbody.innerHTML = `
-        <tr><td>Taller liderazgo</td><td>Nivel de conocimiento</td><td>Prueba escrita</td><td>${ind.taller}%</td><td>>90%</td></tr>
-        <tr><td>Auditorías</td><td>Cumplimiento normas</td><td>Lista de chequeo</td><td>${ind.auditoria}%</td><td>100%</td></tr>
-        <tr><td>Evaluación 360</td><td>Satisfacción equipo</td><td>Encuesta anónima</td><td>${ind.satisfaccion360}/5</td><td>>4.0</td></tr>
-        <tr><td>Canal denuncias</td><td>Reportes atendidos</td><td>Registro interno</td><td>${ind.denunciasAtendidas}</td><td>100%</td></tr>
+        <tr><td>Taller liderazgo</td><td>Nivel de conocimiento</td><td>Prueba escrita</td><td>${ind.taller}%</td><td>>90%</td>
+        <tr><td>Auditorías</td><td>Cumplimiento normas</td><td>Lista de chequeo</td><td>${ind.auditoria}%</td><td>100%</td>
+        <tr><td>Evaluación 360</td><td>Satisfacción equipo</td><td>Encuesta anónima</td><td>${ind.satisfaccion360}/5</td><td>>4.0</td>
+        <tr><td>Canal denuncias</td><td>Reportes atendidos</td><td>Registro interno</td><td>${ind.denunciasAtendidas}</td><td>100%</td>
     `;
     const btnEditar = document.getElementById('btn-editar-indicadores');
     if (usuarioActual.rol === 'supervisor') {
@@ -231,20 +237,16 @@ function crearModalIndicadores() {
     };
 }
 
-// ======================== CANAL ÉTICO (con ocultación forzada del mensaje para supervisores) ========================
+// ======================== CANAL ÉTICO (con mensaje oculto para supervisores) ========================
 function cargarCanal() {
     const esSupervisor = (usuarioActual.rol === 'supervisor');
     const formDenuncia = document.getElementById('form-denegocio');
     const gestionDenuncias = document.getElementById('gestion-denuncias');
     const mensaje = document.getElementById('mensaje-canal');
-
     if (esSupervisor) {
         formDenuncia.style.display = 'none';
         gestionDenuncias.style.display = 'block';
-        if (mensaje) {
-            mensaje.style.display = 'none';
-            mensaje.style.visibility = 'hidden';
-        }
+        if (mensaje) mensaje.style.display = 'none';
         const tbody = document.getElementById('lista-denuncias');
         const tienda = document.getElementById('selector-tienda').value;
         const denunciasFiltradas = datosApp.denuncias.filter(d => d.tienda === tienda);
@@ -260,10 +262,7 @@ function cargarCanal() {
     } else {
         formDenuncia.style.display = 'block';
         gestionDenuncias.style.display = 'none';
-        if (mensaje) {
-            mensaje.style.display = 'block';
-            mensaje.style.visibility = 'visible';
-        }
+        if (mensaje) mensaje.style.display = 'block';
         const btnEnviar = document.getElementById('btn-enviar-denuncia');
         const nuevoBtn = btnEnviar.cloneNode(true);
         btnEnviar.parentNode.replaceChild(nuevoBtn, btnEnviar);
@@ -285,10 +284,11 @@ window.cambiarEstadoDenuncia = (id, estado) => {
     cargarCanal();
 };
 
-// ======================== GESTIÓN (con recalculo automático) ========================
+// ======================== GESTIÓN (con recalculo automático al guardar notas) ========================
 function cargarGestion() {
     if (usuarioActual.rol !== 'supervisor') return;
 
+    // Usuarios y tiendas
     const selectTienda = document.getElementById('newTienda');
     selectTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
     const divTiendas = document.getElementById('lista-tiendas');
@@ -317,7 +317,7 @@ function cargarGestion() {
             </tr>`;
         }
     }
-    html += '</tbody></td>';
+    html += '</tbody></table>';
     lista.innerHTML = html;
     document.getElementById('crearUsuarioForm').onsubmit = (e) => {
         e.preventDefault();
@@ -345,7 +345,7 @@ function cargarGestion() {
         } else alert("Nombre inválido o duplicado");
     };
 
-    // Actividades
+    // Actividades de evaluación
     const listaActividades = document.getElementById('lista-actividades');
     function renderActividades() {
         listaActividades.innerHTML = datosApp.actividadesEvaluacion.map((act, idx) => `
@@ -373,7 +373,7 @@ function cargarGestion() {
     };
     renderActividades();
 
-    // Calificar
+    // Calificar trabajadores
     function llenarSelectActividades() {
         const selAct = document.getElementById('selActividadEvaluacion');
         if (selAct) selAct.innerHTML = '<option value="">Seleccione actividad</option>' + datosApp.actividadesEvaluacion.map(a => `<option value="${a}">${a}</option>`).join('');
@@ -443,6 +443,7 @@ function cargarGestion() {
             else datosApp.evaluacionesDesempeno[n.user].push(nuevaEval);
         }
         guardarDatos();
+        // Recalcular indicadores para esta tienda
         recalcularIndicadoresDesdeActividades(tienda);
         cargarIndicadores();
         cargarPanel();
@@ -451,7 +452,7 @@ function cargarGestion() {
     };
 }
 
-// ======================== FUNCIONES GLOBALES DE EDICIÓN ========================
+// Editar/Eliminar usuarios y tiendas (globales)
 window.editarUsuarioGlobal = (user) => {
     const u = datosApp.usuarios[user];
     const nuevoNombre = prompt("Nuevo nombre", u.nombre);
@@ -581,7 +582,7 @@ window.toggleActividad = (tienda, idx) => {
     cargarAuditorias();
 };
 
-// ======================== MI EVALUACIÓN (trabajador) ========================
+// ======================== MI EVALUACIÓN (para trabajadores) ========================
 function cargarMiEvaluacion() {
     const evaluaciones = datosApp.evaluacionesDesempeno[usuarioActual.user] || [];
     if (evaluaciones.length === 0) {
@@ -598,7 +599,7 @@ function cargarMiEvaluacion() {
             <td>${e.evaluador}</td>
         </tr>`;
     });
-    html += '</tbody><table></div>';
+    html += '</tbody></table></div>';
     document.getElementById('evaluacion-trabajador-contenido').innerHTML = html;
 }
 
