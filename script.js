@@ -125,7 +125,6 @@ function cargarPanel() {
 }
 
 // Modal dinámico para indicadores
-let modalIndicadoresInstance = null;
 function crearModalIndicadores() {
     if (document.getElementById('modalEditarIndicadores')) return;
     const modalHTML = `
@@ -190,35 +189,53 @@ function cargarIndicadores() {
     }
 }
 
+// CANAL ÉTICO: supervisores solo gestionan, trabajadores solo envian
 function cargarCanal() {
-    if (usuarioActual.rol === 'supervisor') {
-        document.getElementById('gestion-denuncias').style.display = 'block';
+    const esSupervisor = (usuarioActual.rol === 'supervisor');
+    const formDenuncia = document.getElementById('form-denegocio');
+    const gestionDenuncias = document.getElementById('gestion-denuncias');
+
+    if (esSupervisor) {
+        formDenuncia.style.display = 'none';
+        gestionDenuncias.style.display = 'block';
         const tbody = document.getElementById('lista-denuncias');
         const tienda = document.getElementById('selector-tienda').value;
         const denunciasFiltradas = datosApp.denuncias.filter(d => d.tienda === tienda);
         tbody.innerHTML = denunciasFiltradas.map(d => `
-            <tr><td>${new Date(d.fecha).toLocaleDateString()}</td><td>${d.descripcion.substring(0, 80)}...</td><td>${d.estado}</td>
-            <td><button class="btn btn-sm btn-success" onclick="cambiarEstadoDenuncia(${d.id}, 'resuelto')">Resolver</button></td></tr>
+            <tr>
+                <td>${new Date(d.fecha).toLocaleDateString()}</td>
+                <td>${d.descripcion.substring(0, 80)}${d.descripcion.length > 80 ? '…' : ''}</td>
+                <td>${d.estado}</td>
+                <td>
+                    ${d.estado !== 'resuelto' ? `<button class="btn btn-sm btn-success" onclick="cambiarEstadoDenuncia(${d.id}, 'resuelto')">Resolver</button>` : 'Resuelta'}
+                </td>
+            </tr>
         `).join('');
+        if (denunciasFiltradas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay denuncias en esta tienda</td></tr>';
+        }
     } else {
-        document.getElementById('gestion-denuncias').style.display = 'none';
-    }
-    document.getElementById('btn-enviar-denuncia').onclick = () => {
-        const texto = document.getElementById('denuncia-texto').value.trim();
-        if (!texto) return alert("Escribe la denuncia");
-        const nuevaDenuncia = {
-            id: Date.now(),
-            fecha: new Date().toISOString(),
-            descripcion: texto,
-            estado: "pendiente",
-            tienda: usuarioActual.tienda
+        formDenuncia.style.display = 'block';
+        gestionDenuncias.style.display = 'none';
+        const btnEnviar = document.getElementById('btn-enviar-denuncia');
+        const nuevoBtn = btnEnviar.cloneNode(true);
+        btnEnviar.parentNode.replaceChild(nuevoBtn, btnEnviar);
+        nuevoBtn.onclick = () => {
+            const texto = document.getElementById('denuncia-texto').value.trim();
+            if (!texto) return alert("Escribe la denuncia");
+            const nuevaDenuncia = {
+                id: Date.now(),
+                fecha: new Date().toISOString(),
+                descripcion: texto,
+                estado: "pendiente",
+                tienda: usuarioActual.tienda
+            };
+            datosApp.denuncias.push(nuevaDenuncia);
+            guardarDatos();
+            alert("Denuncia enviada anónimamente");
+            document.getElementById('denuncia-texto').value = '';
         };
-        datosApp.denuncias.push(nuevaDenuncia);
-        guardarDatos();
-        alert("Denuncia enviada anónimamente");
-        document.getElementById('denuncia-texto').value = '';
-        if (usuarioActual.rol === 'supervisor') cargarCanal();
-    };
+    }
 }
 window.cambiarEstadoDenuncia = (id, estado) => {
     const den = datosApp.denuncias.find(d => d.id === id);
@@ -305,10 +322,8 @@ window.eliminarUsuarioGlobal = (user) => {
 };
 
 // Modal dinámico para editar tienda
-let modalTiendaInstance = null;
 function crearModalTienda(tiendaActual, callback) {
     if (document.getElementById('modalEditarTienda')) {
-        // Si ya existe, lo reutilizamos
         const modalEl = document.getElementById('modalEditarTienda');
         const input = document.getElementById('editTiendaNombre');
         input.value = tiendaActual;
@@ -355,7 +370,6 @@ window.editarTienda = (tienda) => {
         delete datosApp.semaforo[tienda];
         guardarDatos();
         cargarGestion();
-        // Actualizar selector de tienda si está visible
         const selTienda = document.getElementById('selector-tienda');
         if (selTienda) {
             const current = selTienda.value;
