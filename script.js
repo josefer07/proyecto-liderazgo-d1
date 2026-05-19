@@ -29,13 +29,14 @@ function guardarUsuarios(usuarios) {
     localStorage.setItem('usuariosD1', JSON.stringify(usuarios));
 }
 
-// Actualizar la lista de usuarios con botones Editar/Eliminar
+// Actualizar la lista de usuarios
 function actualizarListaUsuarios(usuarios, usuarioActual) {
     const listaDiv = document.getElementById('listaUsuarios');
     if (!listaDiv) return;
     let html = '<table class="table table-sm table-bordered"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Acciones</th></tr></thead><tbody>';
     for (const [user, data] of Object.entries(usuarios)) {
-        if (user !== usuarioActual) {
+        // No mostrar al usuario actual ni al usuario "jefe" (protegido)
+        if (user !== usuarioActual && user !== "jefe") {
             html += `
                 <tr>
                     <td>${user}</td>
@@ -49,12 +50,16 @@ function actualizarListaUsuarios(usuarios, usuarioActual) {
             `;
         }
     }
-    html += '</tbody></table>';
+    html += '</tbody><table>';
     listaDiv.innerHTML = html || '<p class="text-muted">No hay otros usuarios creados.</p>';
 }
 
-// Función global para editar usuario (accesible desde botones)
+// Función global para editar usuario (solo si no es "jefe")
 window.editarUsuario = function(username) {
+    if (username === "jefe") {
+        alert("El usuario principal no puede ser editado.");
+        return;
+    }
     const usuarios = cargarUsuarios();
     const userData = usuarios[username];
     if (!userData) return;
@@ -68,14 +73,17 @@ window.editarUsuario = function(username) {
     modal.show();
 }
 
-// Función global para eliminar usuario
+// Función global para eliminar usuario (protege al "jefe")
 window.eliminarUsuario = function(username) {
+    if (username === "jefe") {
+        alert("El usuario principal no puede ser eliminado.");
+        return;
+    }
     if (confirm(`¿Estás seguro de que deseas eliminar al usuario "${username}"? Esta acción no se puede deshacer.`)) {
         let usuarios = cargarUsuarios();
         if (usuarios[username]) {
             delete usuarios[username];
             guardarUsuarios(usuarios);
-            // Actualizar lista (necesitamos el usuario actual, lo obtenemos del sessionStorage o variable global)
             const usuarioActual = window.usuarioActualLogueado;
             actualizarListaUsuarios(usuarios, usuarioActual);
             alert(`Usuario ${username} eliminado correctamente.`);
@@ -120,7 +128,7 @@ function construirMenu(rol) {
 
 // Inicializar dashboard
 function initDashboard(usuarioActual, rolActual, nombreActual) {
-    window.usuarioActualLogueado = usuarioActual; // guardar para usar en eliminar/editar
+    window.usuarioActualLogueado = usuarioActual;
     document.getElementById('display-name').innerText = `¡Bienvenido, ${nombreActual}!`;
     document.getElementById('display-role').innerText = rolActual;
     construirMenu(rolActual);
@@ -129,7 +137,7 @@ function initDashboard(usuarioActual, rolActual, nombreActual) {
         const usuarios = cargarUsuarios();
         actualizarListaUsuarios(usuarios, usuarioActual);
         
-        // Configurar formulario de creación
+        // Formulario de creación de usuario (con validación duplicados insensible a mayúsculas)
         const formCrear = document.getElementById('crearUsuarioForm');
         if (formCrear) {
             formCrear.onsubmit = (e) => {
@@ -145,7 +153,9 @@ function initDashboard(usuarioActual, rolActual, nombreActual) {
                 }
                 
                 let usuarios = cargarUsuarios();
-                if (usuarios[user]) {
+                // Comparación insensible a mayúsculas
+                const existe = Object.keys(usuarios).some(u => u.toLowerCase() === user.toLowerCase());
+                if (existe) {
                     alert("Ese nombre de usuario ya existe. Elija otro.");
                     return;
                 }
@@ -158,12 +168,21 @@ function initDashboard(usuarioActual, rolActual, nombreActual) {
             };
         }
         
-        // Configurar formulario de edición (modal)
+        // Formulario de edición (modal)
         const editarForm = document.getElementById('editarUsuarioForm');
         if (editarForm) {
-            editarForm.onsubmit = (e) => {
+            // Remover eventos anteriores para evitar duplicados
+            const newForm = editarForm.cloneNode(true);
+            editarForm.parentNode.replaceChild(newForm, editarForm);
+            newForm.onsubmit = (e) => {
                 e.preventDefault();
                 const username = document.getElementById('editUsername').value;
+                if (username === "jefe") {
+                    alert("No se puede editar al usuario principal.");
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal'));
+                    modal.hide();
+                    return;
+                }
                 const nuevoNombre = document.getElementById('editNombre').value.trim();
                 const nuevoRol = document.getElementById('editRol').value;
                 const nuevaPass = document.getElementById('editPass').value;
@@ -187,12 +206,9 @@ function initDashboard(usuarioActual, rolActual, nombreActual) {
                 
                 guardarUsuarios(usuarios);
                 alert(`Usuario ${username} actualizado correctamente.`);
-                // Cerrar modal
-                const modalElement = document.getElementById('editarUsuarioModal');
-                const modal = bootstrap.Modal.getInstance(modalElement);
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal'));
                 modal.hide();
-                // Refrescar lista
-                actualizarListaUsuarios(usuarios, usuarioActual);
+                actualizarListaUsuarios(usuarios, window.usuarioActualLogueado);
             };
         }
     }
