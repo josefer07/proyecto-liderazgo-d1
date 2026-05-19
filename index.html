@@ -38,81 +38,189 @@
 
     <div class="container-fluid">
         <div class="row">
+            <!-- Menú lateral dinámico -->
             <nav class="col-md-3 col-lg-2 bg-light border-end p-3 sidebar-nav" style="min-height: auto;">
-                <div class="nav flex-column nav-pills mt-2" id="menu-lateral">
-                    <!-- Menú dinámico según rol -->
-                </div>
+                <div class="nav flex-column nav-pills mt-2" id="menu-lateral"></div>
             </nav>
 
+            <!-- Contenido principal -->
             <main class="col-md-9 col-lg-10 pt-2 pb-2 pe-4 ps-4">
+                <!-- Selector de tienda (solo visible para supervisores) -->
+                <div id="selector-tienda-container" class="mb-3" style="display: none;">
+                    <label class="fw-bold">Tienda:</label>
+                    <select id="selector-tienda" class="form-select w-auto d-inline-block ms-2"></select>
+                </div>
+
+                <!-- PESTAÑA: PANEL -->
                 <div id="view-home" class="content-view">
                     <div class="welcome-banner shadow-sm p-4 mb-2">
                         <h2 id="display-name" class="fw-bold mb-1"></h2>
                         <span id="display-role" class="badge bg-white text-primary px-3 py-2"></span>
                     </div>
-                    <div class="card p-4 border-0 shadow-sm border-top border-danger border-5">
+                    <!-- Semáforo dinámico -->
+                    <div class="card p-4 border-0 shadow-sm border-top border-danger border-5 mb-4">
                         <h4 class="fw-bold d1-blue-text">Semáforo Laboral</h4>
                         <p class="text-muted">Estado actual de la tienda basado en el cumplimiento de indicadores.</p>
-                        <div class="row g-2 text-center text-white fw-bold">
-                            <div class="col-4"><div class="p-3 bg-success rounded shadow-sm">ÓPTIMO</div></div>
-                            <div class="col-4" style="opacity: 0.3;"><div class="p-3 bg-warning text-dark rounded shadow-sm">RIESGO</div></div>
-                            <div class="col-4" style="opacity: 0.3;"><div class="p-3 bg-danger rounded shadow-sm">CRÍTICO</div></div>
+                        <div id="semaforo-dinamico" class="row g-2 text-center text-white fw-bold"></div>
+                    </div>
+                    <!-- KPIs y próximas actividades -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card p-3 border-0 shadow-sm">
+                                <h5 class="fw-bold">Indicadores clave</h5>
+                                <div id="kpi-resumen"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card p-3 border-0 shadow-sm">
+                                <h5 class="fw-bold">Próximas actividades</h5>
+                                <div id="proximas-actividades"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- PESTAÑA: INDICADORES (con matriz editable para supervisores) -->
                 <div id="view-indicadores" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-primary border-5">
                         <h4 class="fw-bold d1-blue-text mb-4">Matriz de Indicadores</h4>
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle">
+                            <table class="table table-bordered align-middle" id="tabla-indicadores">
                                 <thead class="table-light">
-                                    <tr><th>Actividad</th><th>Indicador</th><th>Método de Evaluación</th></tr>
+                                    <tr><th>Actividad</th><th>Indicador</th><th>Método de Evaluación</th><th>Resultado</th><th>Meta</th></tr>
                                 </thead>
-                                <tbody>
-                                    <tr><td>Taller Liderazgo</td><td>Nivel de conocimiento</td><td>Prueba escrita</td></tr>
-                                    <tr><td>Auditorías</td><td>Cumplimiento normas</td><td>Lista de chequeo</td></tr>
-                                    <tr><td>Evaluación 360</td><td>Satisfacción equipo</td><td>Encuesta anónima</td></tr>
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
+                        <button id="btn-editar-indicadores" class="btn btn-d1 mt-3" style="display: none;">Guardar cambios</button>
                     </div>
                 </div>
 
+                <!-- PESTAÑA: CANAL ÉTICO (con gestión para supervisor) -->
                 <div id="view-canal" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-warning border-5">
                         <h4 class="fw-bold d1-blue-text text-center mb-3">CANAL DE DENUNCIAS CONFIDENCIAL</h4>
                         <p class="text-center text-muted">Utilice este medio para reportar situaciones de abuso o acoso de forma anónima.</p>
-                        <div class="col-md-8 mx-auto">
-                            <textarea class="form-control mb-3" id="denuncia-texto" rows="6" placeholder="Describa la situación detalladamente..."></textarea>
-                            <button class="btn btn-d1 w-100 py-2" onclick="alert('Reporte enviado con éxito bajo estrictos protocolos de confidencialidad.')">ENVIAR REPORTE</button>
+                        <div id="form-denegocio" class="col-md-8 mx-auto">
+                            <textarea id="denuncia-texto" class="form-control mb-3" rows="4" placeholder="Describa la situación detalladamente..."></textarea>
+                            <button id="btn-enviar-denuncia" class="btn btn-d1 w-100">ENVIAR REPORTE</button>
+                        </div>
+                        <!-- Solo supervisor: listado de denuncias -->
+                        <div id="gestion-denuncias" class="mt-5" style="display: none;">
+                            <hr>
+                            <h5>Denuncias recibidas</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead><tr><th>Fecha</th><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead>
+                                    <tbody id="lista-denuncias"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- PESTAÑA: GESTIÓN DE TRABAJADORES (solo supervisor) -->
                 <div id="view-gestion" class="content-view" style="display:none;">
                     <div class="card p-4 border-0 shadow-sm border-top border-success border-5">
                         <h4 class="fw-bold d1-blue-text text-center mb-3">GESTIÓN DE TRABAJADORES Y SUPERVISORES</h4>
-                        <p class="text-center text-muted">Cree nuevas cuentas, edite o elimine usuarios existentes.</p>
                         <div class="col-md-8 mx-auto">
                             <form id="crearUsuarioForm">
                                 <input type="text" id="newNombre" class="form-control mb-2" placeholder="Nombre completo" required>
                                 <input type="text" id="newUser" class="form-control mb-2" placeholder="Usuario" required>
                                 <input type="password" id="newPass" class="form-control mb-2" placeholder="Contraseña" required>
-                                <select id="newRole" class="form-select mb-3">
-                                    <option value="Trabajador Operativo">Trabajador Operativo</option>
-                                    <option value="Supervisor / Jefe de Tienda">Supervisor / Jefe de Tienda</option>
+                                <select id="newRole" class="form-select mb-2">
+                                    <option value="trabajador">Trabajador Operativo</option>
+                                    <option value="supervisor">Supervisor / Jefe de Tienda</option>
                                 </select>
+                                <select id="newTienda" class="form-select mb-3"></select>
                                 <button type="submit" class="btn btn-d1 w-100">CREAR CUENTA</button>
                             </form>
-                            <hr class="my-4">
-                            <h5 class="fw-bold">Usuarios existentes</h5>
-                            <div id="listaUsuarios" class="table-responsive mt-3"></div>
+                            <hr>
+                            <h5>Gestionar Tiendas</h5>
+                            <div class="input-group mb-3">
+                                <input type="text" id="nuevaTiendaNombre" class="form-control" placeholder="Nueva tienda">
+                                <button id="btn-agregar-tienda" class="btn btn-outline-primary">Agregar</button>
+                            </div>
+                            <div id="lista-tiendas" class="mb-3"></div>
+                            <hr>
+                            <h5>Usuarios existentes</h5>
+                            <div id="listaUsuarios" class="table-responsive"></div>
                         </div>
                     </div>
                 </div>
 
+                <!-- PESTAÑA: AUDITORÍAS Y MEJORA (solo supervisor) -->
+                <div id="view-auditorias" class="content-view" style="display:none;">
+                    <div class="card p-4 border-0 shadow-sm border-top border-info border-5">
+                        <h4 class="fw-bold d1-blue-text text-center mb-3">Auditorías y Plan de Mejora</h4>
+                        <div id="auditoria-lista-chequeo" class="mb-4">
+                            <h5>Lista de chequeo - Última auditoría</h5>
+                            <div id="checklist-items" class="mb-2"></div>
+                            <button id="btn-guardar-auditoria" class="btn btn-d1">Guardar resultados</button>
+                        </div>
+                        <hr>
+                        <div id="cronograma-section">
+                            <h5>Cronograma del programa (12 semanas)</h5>
+                            <div class="mb-2">
+                                <button id="btn-reiniciar-cronograma" class="btn btn-sm btn-outline-danger">Reiniciar programa</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead><tr><th>Semana</th><th>Actividad</th><th>Completada</th></tr></thead>
+                                    <tbody id="tabla-cronograma"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <hr>
+                        <div id="plan-mejora">
+                            <h5>Plan de mejora por tienda</h5>
+                            <textarea id="plan-mejora-texto" class="form-control mb-2" rows="3" placeholder="Acciones específicas..."></textarea>
+                            <button id="btn-guardar-plan" class="btn btn-d1">Guardar plan</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PESTAÑA: MI EVALUACIÓN (solo trabajador) -->
+                <div id="view-mi-evaluacion" class="content-view" style="display:none;">
+                    <div class="card p-4 border-0 shadow-sm border-top border-secondary border-5">
+                        <h4 class="fw-bold d1-blue-text text-center mb-3">Mi Evaluación de Desempeño</h4>
+                        <div id="evaluacion-trabajador-contenido"></div>
+                    </div>
+                </div>
+
             </main>
+        </div>
+    </div>
+</div>
+
+<!-- Modales -->
+<!-- Modal para editar indicadores (solo supervisor) -->
+<div class="modal fade" id="modalEditarIndicadores" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white"><h5 class="modal-title">Editar indicadores</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="formEditarIndicadores">
+                    <div class="mb-2"><label>Cumplimiento taller (%)</label><input type="number" id="ind-taller" class="form-control" step="1"></div>
+                    <div class="mb-2"><label>Cumplimiento auditoría (%)</label><input type="number" id="ind-auditoria" class="form-control" step="1"></div>
+                    <div class="mb-2"><label>Satisfacción 360 (1-5)</label><input type="number" id="ind-360" class="form-control" step="0.1"></div>
+                    <div class="mb-2"><label>Denuncias atendidas (nº)</label><input type="number" id="ind-denuncias" class="form-control" step="1"></div>
+                    <button type="submit" class="btn btn-d1 mt-2">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar tienda (nombre) -->
+<div class="modal fade" id="modalEditarTienda" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5>Editar tienda</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="text" id="editTiendaNombre" class="form-control">
+                <button id="guardarEditTienda" class="btn btn-d1 mt-2">Guardar</button>
+            </div>
         </div>
     </div>
 </div>
