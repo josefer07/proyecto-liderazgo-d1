@@ -117,42 +117,6 @@
     </div>
 </div>
 
-<!-- MODAL PARA EDITAR USUARIO (oculto por defecto) -->
-<div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="editarUsuarioModalLabel">Editar Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editarUsuarioForm">
-                    <div class="mb-3">
-                        <label class="form-label">Usuario (no editable)</label>
-                        <input type="text" id="editUsername" class="form-control" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Nombre completo</label>
-                        <input type="text" id="editNombre" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Rol</label>
-                        <select id="editRol" class="form-select">
-                            <option value="Trabajador Operativo">Trabajador Operativo</option>
-                            <option value="Supervisor / Jefe de Tienda">Supervisor / Jefe de Tienda</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Nueva contraseña (dejar en blanco para no cambiar)</label>
-                        <input type="password" id="editPass" class="form-control" placeholder="Escriba solo si desea cambiarla">
-                    </div>
-                    <button type="submit" class="btn btn-d1 w-100">GUARDAR CAMBIOS</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="script.js"></script>
 </body>
