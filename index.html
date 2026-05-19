@@ -17,6 +17,7 @@
             <h5 class="fw-bold d1-blue-text">Nos importa tu bienestar</h5>
             <p class="text-muted small">Programa Líder Responsable: Tu seguridad es nuestra prioridad.</p>
         </div>
+        <!-- Solo login, sin registro -->
         <div id="login-section">
             <h3 class="fw-bold d1-blue-text mb-3">INICIAR SESIÓN</h3>
             <form id="loginForm">
@@ -24,21 +25,7 @@
                 <input type="password" id="loginPass" class="form-control mb-3" placeholder="Contraseña" required>
                 <button type="submit" class="btn btn-d1 w-100">INGRESAR</button>
             </form>
-            <button class="btn btn-link btn-sm mt-3" id="btn-ir-a-registro">¿No tienes cuenta? Regístrate aquí</button>
-        </div>
-        <div id="register-section" style="display:none;">
-            <h3 class="fw-bold d1-blue-text mb-3">CREAR CUENTA</h3>
-            <form id="registerForm">
-                <input type="text" id="regName" class="form-control mb-2" placeholder="Nombre Completo" required>
-                <input type="text" id="regUser" class="form-control mb-2" placeholder="Nuevo Usuario" required>
-                <input type="password" id="regPass" class="form-control mb-2" placeholder="Contraseña" required>
-                <select id="regRole" class="form-select mb-3">
-                    <option value="Trabajador Operativo">Trabajador Operativo</option>
-                    <option value="Supervisor / Jefe de Tienda">Supervisor / Jefe de Tienda</option>
-                </select>
-                <button type="submit" class="btn btn-d1 w-100">REGISTRARSE</button>
-            </form>
-            <button class="btn btn-link btn-sm mt-3" id="btn-ir-a-login">Volver al Inicio</button>
+            <!-- Eliminado el botón de registro -->
         </div>
     </div>
 </div>
@@ -54,21 +41,12 @@
     <div class="container-fluid">
         <div class="row">
             <nav class="col-md-3 col-lg-2 bg-light border-end p-3 sidebar-nav" style="min-height: auto;">
-                <div class="nav flex-column nav-pills mt-2">
-                    <button class="nav-link active mb-2 text-start d-flex align-items-center" onclick="showTab('home', event)">
-                        <span class="material-icons me-2">dashboard</span> PANEL
-                    </button>
-                    <button class="nav-link mb-2 text-start d-flex align-items-center" onclick="showTab('indicadores', event)">
-                        <span class="material-icons me-2">analytics</span> INDICADORES
-                    </button>
-                    <button class="nav-link mb-2 text-start d-flex align-items-center" onclick="showTab('canal', event)">
-                        <span class="material-icons me-2">gavel</span> CANAL ÉTICO
-                    </button>
+                <div class="nav flex-column nav-pills mt-2" id="menu-lateral">
+                    <!-- Los botones se generarán dinámicamente según el rol -->
                 </div>
             </nav>
 
             <main class="col-md-9 col-lg-10 pt-2 pb-2 pe-4 ps-4">
-                
                 <div id="view-home" class="content-view">
                     <div class="welcome-banner shadow-sm p-4 mb-2">
                         <h2 id="display-name" class="fw-bold mb-1"></h2>
@@ -110,6 +88,31 @@
                         <div class="col-md-8 mx-auto">
                             <textarea class="form-control mb-3" id="denuncia-texto" rows="6" placeholder="Describa la situación detalladamente..."></textarea>
                             <button class="btn btn-d1 w-100 py-2" onclick="alert('Reporte enviado con éxito bajo estrictos protocolos de confidencialidad.')">ENVIAR REPORTE</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NUEVA VISTA: GESTIÓN DE TRABAJADORES (solo visible para supervisores/jefes) -->
+                <div id="view-gestion" class="content-view" style="display:none;">
+                    <div class="card p-4 border-0 shadow-sm border-top border-success border-5">
+                        <h4 class="fw-bold d1-blue-text text-center mb-3">GESTIÓN DE TRABAJADORES Y SUPERVISORES</h4>
+                        <p class="text-center text-muted">Cree nuevas cuentas para trabajadores operativos o supervisores.</p>
+                        <div class="col-md-8 mx-auto">
+                            <form id="crearUsuarioForm">
+                                <input type="text" id="newNombre" class="form-control mb-2" placeholder="Nombre completo" required>
+                                <input type="text" id="newUser" class="form-control mb-2" placeholder="Usuario" required>
+                                <input type="password" id="newPass" class="form-control mb-2" placeholder="Contraseña" required>
+                                <select id="newRole" class="form-select mb-3">
+                                    <option value="Trabajador Operativo">Trabajador Operativo</option>
+                                    <option value="Supervisor / Jefe de Tienda">Supervisor / Jefe de Tienda</option>
+                                </select>
+                                <button type="submit" class="btn btn-d1 w-100">CREAR CUENTA</button>
+                            </form>
+                            <hr class="my-4">
+                            <h5 class="fw-bold">Usuarios existentes</h5>
+                            <div id="listaUsuarios" class="table-responsive mt-3">
+                                <!-- Aquí se listarán los usuarios (excluyendo al actual) -->
+                            </div>
                         </div>
                     </div>
                 </div>
