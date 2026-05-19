@@ -1,84 +1,26 @@
-:root { 
-    --d1-red: #e30613; 
-    --d1-blue: #005696; 
-}
+:root { --d1-red: #e30613; --d1-blue: #005696; }
 
-body { 
-    background-color: #ffffff; 
-    font-family: 'Segoe UI', sans-serif; 
-}
-
-#auth-container { 
-    height: 100vh; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    background-color: #f4f4f4; 
-}
-
-.auth-card { 
-    background: white; 
-    padding: 2.5rem; 
-    border-radius: 30px; 
-    width: 90%; 
-    max-width: 480px; 
-    text-align: center; 
-}
-
+body { background-color: #ffffff; font-family: 'Segoe UI', sans-serif; }
+#auth-container { height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #f4f4f4; }
+.auth-card { background: white; padding: 2.5rem; border-radius: 30px; width: 90%; max-width: 480px; text-align: center; }
 .login-logo { width: 110px; margin-bottom: 15px; }
-
-.bienestar-contenedor h5 {
-    font-style: italic;
-    color: var(--d1-blue);
-    border-bottom: 3px solid var(--d1-red);
-    display: inline-block;
-    padding-bottom: 5px;
-}
-
-.navbar-d1 { 
-    background-color: var(--d1-red); 
-    border-bottom: 4px solid var(--d1-blue); 
-}
-
-.navbar-brand {
-    font-size: 2.5rem !important;
-    color: white !important;
-}
-
-.btn-logout {
-    margin-left: auto;
-}
-
+.bienestar-contenedor h5 { font-style: italic; color: var(--d1-blue); border-bottom: 3px solid var(--d1-red); display: inline-block; padding-bottom: 5px; }
+.navbar-d1 { background-color: var(--d1-red); border-bottom: 4px solid var(--d1-blue); }
+.navbar-brand { font-size: 2.5rem !important; color: white !important; }
+.btn-logout { margin-left: auto; }
 .d1-blue-text { color: var(--d1-blue); }
 .btn-d1 { background-color: var(--d1-red); color: white; font-weight: bold; border: none; }
 .btn-d1:hover { background-color: #b3050f; color: white; }
-
-.welcome-banner { 
-    background: var(--d1-blue); 
-    color: white; 
-    border-radius: 15px; 
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-}
-
-.nav-link { 
-    color: #333; 
-    font-weight: 500; 
-    transition: 0.3s;
-    border: none !important;
-}
+.welcome-banner { background: var(--d1-blue); color: white; border-radius: 15px; margin-top: 0; margin-bottom: 0.5rem; }
+.nav-link { color: #333; font-weight: 500; transition: 0.3s; border: none !important; }
 .nav-link:hover { background-color: #e9ecef; color: var(--d1-red); }
 .nav-link.active { background-color: var(--d1-blue) !important; color: white !important; }
+.content-view { animation: fadeIn 0.5s ease-in-out; }
+.sidebar-nav { min-height: auto; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-.content-view {
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-.sidebar-nav {
-    min-height: auto;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+/* Estilos extra */
+#selector-tienda-container { background: #f8f9fa; padding: 0.5rem; border-radius: 8px; }
+.semaforo-verde { background-color: #198754; }
+.semaforo-amarillo { background-color: #ffc107; color: black; }
+.semaforo-rojo { background-color: #dc3545; }
