@@ -1,283 +1,414 @@
-// FUNCIÓN PARA CAMBIAR ENTRE PESTAÑAS
+// ======================== MODELO DE DATOS ========================
+let datosApp = {
+    usuarios: {},
+    tiendas: [],
+    indicadores: {},    // por tienda: { taller, auditoria, satisfaccion360, denunciasAtendidas }
+    semaforo: {},       // por tienda: "verde","amarillo","rojo"
+    cronograma: {},     // por tienda: { actividades: [], cicloActual, fechaInicio }
+    denuncias: [],      // cada una: { id, fecha, descripcion, estado, tienda }
+    evaluacionesDesempeno: {}, // por usuario (trabajador): { calificacion, comentarios, fecha }
+    planesMejora: {}    // por tienda: texto
+};
+
+// Función para cargar/guardar datos en localStorage
+function cargarDatos() {
+    const local = localStorage.getItem('appD1');
+    if (local) {
+        datosApp = JSON.parse(local);
+    } else {
+        // Inicialización por defecto
+        datosApp.usuarios = { "jefe": { nombre: "Jefe Principal", rol: "supervisor", pass: "1234", tienda: "Central" } };
+        datosApp.tiendas = ["Central", "Tienda Norte", "Tienda Sur"];
+        datosApp.indicadores = {
+            "Central": { taller: 80, auditoria: 85, satisfaccion360: 3.5, denunciasAtendidas: 0, fecha: new Date().toISOString() },
+            "Tienda Norte": { taller: 75, auditoria: 90, satisfaccion360: 4.0, denunciasAtendidas: 1, fecha: new Date().toISOString() },
+            "Tienda Sur": { taller: 90, auditoria: 88, satisfaccion360: 3.8, denunciasAtendidas: 0, fecha: new Date().toISOString() }
+        };
+        datosApp.semaforo = { "Central": "amarillo", "Tienda Norte": "verde", "Tienda Sur": "amarillo" };
+        datosApp.cronograma = {};
+        datosApp.denuncias = [];
+        datosApp.evaluacionesDesempeno = {};
+        datosApp.planesMejora = {};
+        // Inicializar cronograma para cada tienda
+        const actividadesBase = [
+            "Taller liderazgo ético", "Simulación de casos reales", "Evaluación 360°", "Auditorías sorpresa",
+            "Semáforo laboral", "Canal de denuncias", "Rotación de roles", "Plan de mejora",
+            "Seguimiento 1", "Seguimiento 2", "Seguimiento 3", "Seguimiento 4"
+        ];
+        datosApp.tiendas.forEach(tienda => {
+            datosApp.cronograma[tienda] = {
+                actividades: actividadesBase.map((act, idx) => ({ nombre: act, semana: idx+1, completada: false })),
+                cicloActual: 1,
+                fechaInicio: new Date().toISOString()
+            };
+            if (!datosApp.planesMejora[tienda]) datosApp.planesMejora[tienda] = "";
+        });
+        guardarDatos();
+    }
+}
+function guardarDatos() {
+    localStorage.setItem('appD1', JSON.stringify(datosApp));
+}
+
+// ======================== FUNCIONES AUXILIARES ========================
+function actualizarSemaforoTienda(tienda) {
+    const ind = datosApp.indicadores[tienda];
+    if (!ind) return "rojo";
+    let puntaje = (ind.taller * 0.2) + (ind.auditoria * 0.3) + (ind.satisfaccion360 * 20) + (ind.denunciasAtendidas * 5);
+    if (puntaje >= 85) return "verde";
+    if (puntaje >= 60) return "amarillo";
+    return "rojo";
+}
+function recalcularTodosSemaforos() {
+    datosApp.tiendas.forEach(t => {
+        datosApp.semaforo[t] = actualizarSemaforoTienda(t);
+    });
+    guardarDatos();
+}
+
+// ======================== RENDERIZADO DE INTERFAZ SEGÚN ROL ========================
+let usuarioActual = null;
+
+function construirMenu() {
+    const menu = document.getElementById('menu-lateral');
+    menu.innerHTML = '';
+    const esSupervisor = (usuarioActual.rol === 'supervisor');
+    const botones = [
+        { id: 'home', icono: 'dashboard', texto: 'PANEL' },
+        { id: 'indicadores', icono: 'analytics', texto: 'INDICADORES' },
+        { id: 'canal', icono: 'gavel', texto: 'CANAL ÉTICO' }
+    ];
+    if (esSupervisor) {
+        botones.push({ id: 'gestion', icono: 'people', texto: 'GESTIÓN' });
+        botones.push({ id: 'auditorias', icono: 'assignment', texto: 'AUDITORÍAS' });
+    } else {
+        botones.push({ id: 'mi-evaluacion', icono: 'star', texto: 'MI EVALUACIÓN' });
+    }
+    botones.forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = 'nav-link mb-2 text-start d-flex align-items-center';
+        btn.innerHTML = `<span class="material-icons me-2">${b.icono}</span> ${b.texto}`;
+        btn.onclick = (e) => showTab(b.id, e);
+        menu.appendChild(btn);
+    });
+    // Activar home por defecto
+    document.querySelector('#menu-lateral .nav-link')?.classList.add('active');
+}
+
 function showTab(view, event) {
     document.querySelectorAll('.content-view').forEach(v => v.style.display = 'none');
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     document.getElementById('view-' + view).style.display = 'block';
-    if (event) {
-        event.currentTarget.classList.add('active');
-    }
+    if (event) event.currentTarget.classList.add('active');
+    // Cargar datos específicos de la vista
+    if (view === 'home') cargarPanel();
+    if (view === 'indicadores') cargarIndicadores();
+    if (view === 'canal') cargarCanal();
+    if (view === 'gestion') cargarGestion();
+    if (view === 'auditorias') cargarAuditorias();
+    if (view === 'mi-evaluacion') cargarMiEvaluacion();
 }
 
-// Cargar o inicializar usuarios en localStorage
-function cargarUsuarios() {
-    let usuarios = localStorage.getItem('usuariosD1');
-    let usuariosObj = usuarios ? JSON.parse(usuarios) : {};
-    
-    if (!usuariosObj["jefe"]) {
-        usuariosObj["jefe"] = { nombre: "Jefe Principal", rol: "Supervisor / Jefe de Tienda", pass: "1234" };
-        localStorage.setItem('usuariosD1', JSON.stringify(usuariosObj));
+// ======================== VISTAS ========================
+function cargarPanel() {
+    const tienda = (usuarioActual.rol === 'supervisor') ? document.getElementById('selector-tienda').value : usuarioActual.tienda;
+    const semaforo = datosApp.semaforo[tienda] || 'rojo';
+    const semaforoDiv = document.getElementById('semaforo-dinamico');
+    semaforoDiv.innerHTML = `
+        <div class="col-4"><div class="p-3 bg-success rounded shadow-sm ${semaforo !== 'verde' ? 'opacity-25' : ''}">ÓPTIMO</div></div>
+        <div class="col-4"><div class="p-3 bg-warning text-dark rounded shadow-sm ${semaforo !== 'amarillo' ? 'opacity-25' : ''}">RIESGO</div></div>
+        <div class="col-4"><div class="p-3 bg-danger rounded shadow-sm ${semaforo !== 'rojo' ? 'opacity-25' : ''}">CRÍTICO</div></div>
+    `;
+    // KPIs resumen
+    const ind = datosApp.indicadores[tienda];
+    document.getElementById('kpi-resumen').innerHTML = `
+        <p>✅ Taller: ${ind.taller}%</p>
+        <p>📋 Auditoría: ${ind.auditoria}%</p>
+        <p>⭐ Satisfacción 360: ${ind.satisfaccion360}/5</p>
+        <p>📢 Denuncias atendidas: ${ind.denunciasAtendidas}</p>
+    `;
+    // Próximas actividades
+    const crono = datosApp.cronograma[tienda];
+    const noCompletadas = crono.actividades.filter(a => !a.completada);
+    const prox = noCompletadas.slice(0, 3).map(a => `<li>Semana ${a.semana}: ${a.nombre}</li>`).join('');
+    document.getElementById('proximas-actividades').innerHTML = prox ? `<ul>${prox}</ul>` : '<p>¡Programa completado!</p>';
+}
+
+function cargarIndicadores() {
+    const tienda = (usuarioActual.rol === 'supervisor') ? document.getElementById('selector-tienda').value : usuarioActual.tienda;
+    const ind = datosApp.indicadores[tienda];
+    const tbody = document.querySelector('#tabla-indicadores tbody');
+    tbody.innerHTML = `
+        <tr><td>Taller liderazgo</td><td>Nivel de conocimiento</td><td>Prueba escrita</td><td>${ind.taller}%</td><td>>90%</td></tr>
+        <tr><td>Auditorías</td><td>Cumplimiento normas</td><td>Lista de chequeo</td><td>${ind.auditoria}%</td><td>100%</td></tr>
+        <tr><td>Evaluación 360</td><td>Satisfacción equipo</td><td>Encuesta anónima</td><td>${ind.satisfaccion360}/5</td><td>>4.0</td></tr>
+        <tr><td>Canal denuncias</td><td>Reportes atendidos</td><td>Registro interno</td><td>${ind.denunciasAtendidas}</td><td>100%</td></tr>
+    `;
+    const btnEditar = document.getElementById('btn-editar-indicadores');
+    if (usuarioActual.rol === 'supervisor') {
+        btnEditar.style.display = 'block';
+        btnEditar.onclick = () => {
+            document.getElementById('ind-taller').value = ind.taller;
+            document.getElementById('ind-auditoria').value = ind.auditoria;
+            document.getElementById('ind-360').value = ind.satisfaccion360;
+            document.getElementById('ind-denuncias').value = ind.denunciasAtendidas;
+            new bootstrap.Modal(document.getElementById('modalEditarIndicadores')).show();
+        };
     } else {
-        if (usuariosObj["jefe"].pass !== "1234") {
-            usuariosObj["jefe"].pass = "1234";
-            localStorage.setItem('usuariosD1', JSON.stringify(usuariosObj));
-        }
+        btnEditar.style.display = 'none';
     }
-    return JSON.parse(localStorage.getItem('usuariosD1'));
 }
 
-function guardarUsuarios(usuarios) {
-    localStorage.setItem('usuariosD1', JSON.stringify(usuarios));
+function cargarCanal() {
+    if (usuarioActual.rol === 'supervisor') {
+        document.getElementById('gestion-denuncias').style.display = 'block';
+        const tbody = document.getElementById('lista-denuncias');
+        const denunciasFiltradas = datosApp.denuncias.filter(d => d.tienda === document.getElementById('selector-tienda').value);
+        tbody.innerHTML = denunciasFiltradas.map(d => `
+            <tr>
+                <td>${new Date(d.fecha).toLocaleDateString()}</td>
+                <td>${d.descripcion.substring(0, 80)}...</td>
+                <td>${d.estado}</td>
+                <td><button class="btn btn-sm btn-success" onclick="cambiarEstadoDenuncia(${d.id}, 'resuelto')">Resolver</button></td>
+            </tr>
+        `).join('');
+    } else {
+        document.getElementById('gestion-denuncias').style.display = 'none';
+    }
+    document.getElementById('btn-enviar-denuncia').onclick = () => {
+        const texto = document.getElementById('denuncia-texto').value.trim();
+        if (!texto) return alert("Escribe la denuncia");
+        const nuevaDenuncia = {
+            id: Date.now(),
+            fecha: new Date().toISOString(),
+            descripcion: texto,
+            estado: "pendiente",
+            tienda: usuarioActual.tienda
+        };
+        datosApp.denuncias.push(nuevaDenuncia);
+        guardarDatos();
+        alert("Denuncia enviada anónimamente");
+        document.getElementById('denuncia-texto').value = '';
+        if (usuarioActual.rol === 'supervisor') cargarCanal();
+    };
 }
+window.cambiarEstadoDenuncia = (id, estado) => {
+    const den = datosApp.denuncias.find(d => d.id === id);
+    if (den) den.estado = estado;
+    guardarDatos();
+    cargarCanal();
+};
 
-// Actualizar la lista de usuarios (excluye al usuario actual y al "jefe")
-function actualizarListaUsuarios(usuarios, usuarioActual) {
-    const listaDiv = document.getElementById('listaUsuarios');
-    if (!listaDiv) return;
-    let html = '<table class="table table-sm table-bordered"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Acciones</th></tr></thead><tbody>';
-    for (const [user, data] of Object.entries(usuarios)) {
-        if (user !== usuarioActual && user !== "jefe") {
-            html += `
-                <tr>
-                    <td>${user}</td>
-                    <td>${data.nombre}</td>
-                    <td>${data.rol}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary me-1" onclick="editarUsuario('${user}')">Editar</button>
-                        <button class="btn btn-sm btn-danger" onclick="eliminarUsuario('${user}')">Eliminar</button>
-                    </td>
-                </tr>
-            `;
+function cargarGestion() {
+    if (usuarioActual.rol !== 'supervisor') return;
+    // Cargar selector de tiendas en formulario de creación
+    const selectTienda = document.getElementById('newTienda');
+    selectTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
+    // Lista de tiendas con opciones editar/eliminar
+    const divTiendas = document.getElementById('lista-tiendas');
+    divTiendas.innerHTML = datosApp.tiendas.map(t => `
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <span>${t}</span>
+            <div>
+                <button class="btn btn-sm btn-outline-primary" onclick="editarTienda('${t}')">Editar</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="eliminarTienda('${t}')">Eliminar</button>
+            </div>
+        </div>
+    `).join('');
+    // Lista de usuarios
+    const lista = document.getElementById('listaUsuarios');
+    let html = '<table class="table table-sm table-bordered"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Tienda</th><th>Acciones</th></tr></thead><tbody>';
+    for (const [user, data] of Object.entries(datosApp.usuarios)) {
+        if (user !== 'jefe') {
+            html += `<tr>
+                <td>${user}</td>
+                <td>${data.nombre}</td>
+                <td>${data.rol === 'supervisor' ? 'Supervisor' : 'Trabajador'}</td>
+                <td>${data.tienda || 'Sin asignar'}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="editarUsuarioGlobal('${user}')">Editar</button>
+                    <button class="btn btn-sm btn-danger" onclick="eliminarUsuarioGlobal('${user}')">Eliminar</button>
+                </td>
+            </tr>`;
         }
     }
     html += '</tbody></table>';
-    listaDiv.innerHTML = html || '<p class="text-muted">No hay otros usuarios creados.</p>';
+    lista.innerHTML = html;
+    // Crear usuario
+    document.getElementById('crearUsuarioForm').onsubmit = (e) => {
+        e.preventDefault();
+        const nombre = document.getElementById('newNombre').value.trim();
+        const user = document.getElementById('newUser').value.trim();
+        const pass = document.getElementById('newPass').value.trim();
+        const rol = document.getElementById('newRole').value;
+        const tienda = document.getElementById('newTienda').value;
+        if (!nombre || !user || !pass) return alert("Complete todos los campos");
+        if (datosApp.usuarios[user]) return alert("Usuario ya existe");
+        datosApp.usuarios[user] = { nombre, rol, pass, tienda };
+        guardarDatos();
+        alert("Usuario creado");
+        document.getElementById('crearUsuarioForm').reset();
+        cargarGestion();
+    };
+    document.getElementById('btn-agregar-tienda').onclick = () => {
+        const nueva = document.getElementById('nuevaTiendaNombre').value.trim();
+        if (nueva && !datosApp.tiendas.includes(nueva)) {
+            datosApp.tiendas.push(nueva);
+            datosApp.indicadores[nueva] = { taller: 50, auditoria: 50, satisfaccion360: 2.5, denunciasAtendidas: 0, fecha: new Date().toISOString() };
+            datosApp.semaforo[nueva] = "rojo";
+            guardarDatos();
+            cargarGestion();
+        } else alert("Nombre inválido o duplicado");
+    };
 }
-
-// Crear el modal dinámicamente (solo para supervisores/jefes)
-let modalInstance = null;
-
-function crearModalEdicion() {
-    // Si ya existe, no lo creamos de nuevo
-    if (document.getElementById('editarUsuarioModal')) return;
-    
-    const modalHTML = `
-        <div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="editarUsuarioModalLabel">Editar Usuario</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="editarUsuarioForm">
-                            <div class="mb-3">
-                                <label class="form-label">Usuario (no editable)</label>
-                                <input type="text" id="editUsername" class="form-control" readonly>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Nombre completo</label>
-                                <input type="text" id="editNombre" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Rol</label>
-                                <select id="editRol" class="form-select">
-                                    <option value="Trabajador Operativo">Trabajador Operativo</option>
-                                    <option value="Supervisor / Jefe de Tienda">Supervisor / Jefe de Tienda</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Nueva contraseña (dejar en blanco para no cambiar)</label>
-                                <input type="password" id="editPass" class="form-control" placeholder="Escriba solo si desea cambiarla">
-                            </div>
-                            <button type="submit" class="btn btn-d1 w-100">GUARDAR CAMBIOS</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    // Configurar el evento submit del formulario de edición
-    const editarForm = document.getElementById('editarUsuarioForm');
-    if (editarForm) {
-        editarForm.onsubmit = (e) => {
-            e.preventDefault();
-            const username = document.getElementById('editUsername').value;
-            if (username === "jefe") {
-                alert("No se puede editar al usuario principal.");
-                const modal = bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal'));
-                modal.hide();
-                return;
-            }
-            const nuevoNombre = document.getElementById('editNombre').value.trim();
-            const nuevoRol = document.getElementById('editRol').value;
-            const nuevaPass = document.getElementById('editPass').value;
-            
-            if (!nuevoNombre) {
-                alert("El nombre no puede estar vacío.");
-                return;
-            }
-            
-            let usuarios = cargarUsuarios();
-            if (!usuarios[username]) {
-                alert("El usuario ya no existe.");
-                return;
-            }
-            
-            usuarios[username].nombre = nuevoNombre;
-            usuarios[username].rol = nuevoRol;
-            if (nuevaPass.trim() !== "") {
-                usuarios[username].pass = nuevaPass.trim();
-            }
-            
-            guardarUsuarios(usuarios);
-            alert(`Usuario ${username} actualizado correctamente.`);
-            const modal = bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal'));
-            modal.hide();
-            actualizarListaUsuarios(usuarios, window.usuarioActualLogueado);
-        };
-    }
-}
-
-// Función global para editar usuario (crea el modal si no existe y lo muestra)
-window.editarUsuario = function(username) {
-    if (username === "jefe") {
-        alert("El usuario principal no puede ser editado.");
-        return;
-    }
-    const usuarios = cargarUsuarios();
-    const userData = usuarios[username];
-    if (!userData) return;
-    
-    // Crear modal si no existe
-    crearModalEdicion();
-    
-    // Llenar datos
-    document.getElementById('editUsername').value = username;
-    document.getElementById('editNombre').value = userData.nombre;
-    document.getElementById('editRol').value = userData.rol;
-    document.getElementById('editPass').value = '';
-    
-    // Mostrar modal
-    const modalElement = document.getElementById('editarUsuarioModal');
-    const modal = new bootstrap.Modal(modalElement);
-    modal.show();
-}
-
-// Función global para eliminar usuario
-window.eliminarUsuario = function(username) {
-    if (username === "jefe") {
-        alert("El usuario principal no puede ser eliminado.");
-        return;
-    }
-    if (confirm(`¿Estás seguro de que deseas eliminar al usuario "${username}"? Esta acción no se puede deshacer.`)) {
-        let usuarios = cargarUsuarios();
-        if (usuarios[username]) {
-            delete usuarios[username];
-            guardarUsuarios(usuarios);
-            const usuarioActual = window.usuarioActualLogueado;
-            actualizarListaUsuarios(usuarios, usuarioActual);
-            alert(`Usuario ${username} eliminado correctamente.`);
-        } else {
-            alert("El usuario ya no existe.");
-        }
-    }
-}
-
-// Construir menú según rol
-function construirMenu(rol) {
-    const menuContainer = document.getElementById('menu-lateral');
-    if (!menuContainer) return;
-    
-    let botones = `
-        <button class="nav-link active mb-2 text-start d-flex align-items-center" onclick="showTab('home', event)">
-            <span class="material-icons me-2">dashboard</span> PANEL
-        </button>
-        <button class="nav-link mb-2 text-start d-flex align-items-center" onclick="showTab('indicadores', event)">
-            <span class="material-icons me-2">analytics</span> INDICADORES
-        </button>
-        <button class="nav-link mb-2 text-start d-flex align-items-center" onclick="showTab('canal', event)">
-            <span class="material-icons me-2">gavel</span> CANAL ÉTICO
-        </button>
-    `;
-    
-    if (rol === "Supervisor / Jefe de Tienda") {
-        botones += `
-            <button class="nav-link mb-2 text-start d-flex align-items-center" onclick="showTab('gestion', event)">
-                <span class="material-icons me-2">people</span> GESTIÓN DE TRABAJADORES
-            </button>
-        `;
-    }
-    
-    menuContainer.innerHTML = botones;
-    
-    setTimeout(() => {
-        const firstBtn = menuContainer.querySelector('.nav-link');
-        if (firstBtn) firstBtn.classList.add('active');
-    }, 0);
-}
-
-// Inicializar dashboard
-function initDashboard(usuarioActual, rolActual, nombreActual) {
-    window.usuarioActualLogueado = usuarioActual;
-    document.getElementById('display-name').innerText = `¡Bienvenido, ${nombreActual}!`;
-    document.getElementById('display-role').innerText = rolActual;
-    construirMenu(rolActual);
-    
-    if (rolActual === "Supervisor / Jefe de Tienda") {
-        const usuarios = cargarUsuarios();
-        actualizarListaUsuarios(usuarios, usuarioActual);
-        
-        // Formulario de creación de usuario (con validación duplicados insensible a mayúsculas)
-        const formCrear = document.getElementById('crearUsuarioForm');
-        if (formCrear) {
-            // Remover eventos anteriores para evitar duplicados
-            const newForm = formCrear.cloneNode(true);
-            formCrear.parentNode.replaceChild(newForm, formCrear);
-            newForm.onsubmit = (e) => {
-                e.preventDefault();
-                const nombre = document.getElementById('newNombre').value.trim();
-                const user = document.getElementById('newUser').value.trim();
-                const pass = document.getElementById('newPass').value.trim();
-                const rol = document.getElementById('newRole').value;
-                
-                if (!nombre || !user || !pass) {
-                    alert("Todos los campos son obligatorios.");
-                    return;
-                }
-                
-                let usuarios = cargarUsuarios();
-                const existe = Object.keys(usuarios).some(u => u.toLowerCase() === user.toLowerCase());
-                if (existe) {
-                    alert("Ese nombre de usuario ya existe. Elija otro.");
-                    return;
-                }
-                
-                usuarios[user] = { nombre: nombre, rol: rol, pass: pass };
-                guardarUsuarios(usuarios);
-                alert(`Usuario ${user} creado exitosamente como ${rol}.`);
-                newForm.reset();
-                actualizarListaUsuarios(usuarios, usuarioActual);
-            };
-        }
-    }
-}
-
-// LOGIN
-document.getElementById('loginForm').onsubmit = (e) => {
-    e.preventDefault();
-    const u = document.getElementById('loginUser').value;
-    const p = document.getElementById('loginPass').value;
-    
-    const usuarios = cargarUsuarios();
-    
-    if (usuarios[u] && usuarios[u].pass === p) {
-        const userData = usuarios[u];
-        document.getElementById('auth-container').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-        initDashboard(u, userData.rol, userData.nombre);
-    } else {
-        alert("Error: Usuario o contraseña incorrectos.");
+window.editarUsuarioGlobal = (user) => {
+    const u = datosApp.usuarios[user];
+    const nuevoNombre = prompt("Nuevo nombre", u.nombre);
+    const nuevoRol = confirm("¿Cambiar a supervisor?") ? "supervisor" : "trabajador";
+    const nuevaTienda = prompt("Tienda", u.tienda);
+    if (nuevoNombre) u.nombre = nuevoNombre;
+    u.rol = nuevoRol;
+    if (nuevaTienda && datosApp.tiendas.includes(nuevaTienda)) u.tienda = nuevaTienda;
+    guardarDatos();
+    cargarGestion();
+};
+window.eliminarUsuarioGlobal = (user) => {
+    if (confirm("¿Eliminar usuario?")) {
+        delete datosApp.usuarios[user];
+        guardarDatos();
+        cargarGestion();
     }
 };
+window.editarTienda = (tienda) => {
+    document.getElementById('editTiendaNombre').value = tienda;
+    const modal = new bootstrap.Modal(document.getElementById('modalEditarTienda'));
+    modal.show();
+    document.getElementById('guardarEditTienda').onclick = () => {
+        const nuevo = document.getElementById('editTiendaNombre').value.trim();
+        if (nuevo && nuevo !== tienda) {
+            const idx = datosApp.tiendas.indexOf(tienda);
+            if (idx !== -1) datosApp.tiendas[idx] = nuevo;
+            // Actualizar referencias en usuarios
+            for (let u in datosApp.usuarios) {
+                if (datosApp.usuarios[u].tienda === tienda) datosApp.usuarios[u].tienda = nuevo;
+            }
+            // Actualizar indicadores, semáforo, etc.
+            datosApp.indicadores[nuevo] = datosApp.indicadores[tienda];
+            delete datosApp.indicadores[tienda];
+            datosApp.semaforo[nuevo] = datosApp.semaforo[tienda];
+            delete datosApp.semaforo[tienda];
+            guardarDatos();
+        }
+        modal.hide();
+        cargarGestion();
+    };
+};
+window.eliminarTienda = (tienda) => {
+    if (confirm(`Eliminar tienda ${tienda}?`)) {
+        datosApp.tiendas = datosApp.tiendas.filter(t => t !== tienda);
+        guardarDatos();
+        cargarGestion();
+    }
+};
+
+function cargarAuditorias() {
+    if (usuarioActual.rol !== 'supervisor') return;
+    const tienda = document.getElementById('selector-tienda').value;
+    // Lista de chequeo (simulada)
+    const checklist = document.getElementById('checklist-items');
+    checklist.innerHTML = `
+        <div class="form-check"><input class="form-check-input" type="checkbox" id="chk1"> Cumplimiento horarios</div>
+        <div class="form-check"><input class="form-check-input" type="checkbox" id="chk2"> Respeto entre compañeros</div>
+        <div class="form-check"><input class="form-check-input" type="checkbox" id="chk3"> Condiciones de seguridad</div>
+    `;
+    document.getElementById('btn-guardar-auditoria').onclick = () => {
+        let cumplimiento = 0;
+        if (document.getElementById('chk1').checked) cumplimiento += 33;
+        if (document.getElementById('chk2').checked) cumplimiento += 33;
+        if (document.getElementById('chk3').checked) cumplimiento += 34;
+        datosApp.indicadores[tienda].auditoria = cumplimiento;
+        datosApp.semaforo[tienda] = actualizarSemaforoTienda(tienda);
+        guardarDatos();
+        alert("Auditoría guardada");
+        cargarIndicadores();
+    };
+    // Cronograma
+    const crono = datosApp.cronograma[tienda];
+    const tablaCrono = document.getElementById('tabla-cronograma');
+    tablaCrono.innerHTML = crono.actividades.map(act => `
+        <tr>
+            <td>${act.semana}</td>
+            <td>${act.nombre}</td>
+            <td><input type="checkbox" ${act.completada ? 'checked' : ''} onchange="toggleActividad('${tienda}', ${act.semana-1})"></td>
+        </tr>
+    `).join('');
+    document.getElementById('btn-reiniciar-cronograma').onclick = () => {
+        if (confirm("Reiniciar programa? Se marcarán todas como no completadas")) {
+            crono.actividades.forEach(a => a.completada = false);
+            crono.cicloActual++;
+            crono.fechaInicio = new Date().toISOString();
+            guardarDatos();
+            cargarAuditorias();
+        }
+    };
+    document.getElementById('plan-mejora-texto').value = datosApp.planesMejora[tienda] || "";
+    document.getElementById('btn-guardar-plan').onclick = () => {
+        datosApp.planesMejora[tienda] = document.getElementById('plan-mejora-texto').value;
+        guardarDatos();
+        alert("Plan guardado");
+    };
+}
+window.toggleActividad = (tienda, idx) => {
+    datosApp.cronograma[tienda].actividades[idx].completada = !datosApp.cronograma[tienda].actividades[idx].completada;
+    guardarDatos();
+    cargarAuditorias();
+};
+
+function cargarMiEvaluacion() {
+    const evalUser = datosApp.evaluacionesDesempeno[usuarioActual.user];
+    if (evalUser) {
+        document.getElementById('evaluacion-trabajador-contenido').innerHTML = `
+            <p><strong>Calificación:</strong> ${evalUser.calificacion}/5</p>
+            <p><strong>Comentarios:</strong> ${evalUser.comentarios}</p>
+            <p><strong>Fecha:</strong> ${new Date(evalUser.fecha).toLocaleDateString()}</p>
+        `;
+    } else {
+        document.getElementById('evaluacion-trabajador-contenido').innerHTML = '<p>Aún no hay evaluación de desempeño.</p>';
+    }
+}
+
+// ======================== LOGIN Y INICIALIZACIÓN ========================
+document.getElementById('loginForm').onsubmit = (e) => {
+    e.preventDefault();
+    const user = document.getElementById('loginUser').value;
+    const pass = document.getElementById('loginPass').value;
+    cargarDatos();
+    if (datosApp.usuarios[user] && datosApp.usuarios[user].pass === pass) {
+        usuarioActual = { ...datosApp.usuarios[user], user };
+        document.getElementById('display-name').innerText = `¡Bienvenido, ${usuarioActual.nombre}!`;
+        document.getElementById('display-role').innerText = usuarioActual.rol === 'supervisor' ? 'Supervisor / Jefe de Tienda' : 'Trabajador Operativo';
+        document.getElementById('auth-container').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        if (usuarioActual.rol === 'supervisor') {
+            const selDiv = document.getElementById('selector-tienda-container');
+            selDiv.style.display = 'block';
+            const selTienda = document.getElementById('selector-tienda');
+            selTienda.innerHTML = datosApp.tiendas.map(t => `<option value="${t}">${t}</option>`).join('');
+            selTienda.value = usuarioActual.tienda || datosApp.tiendas[0];
+            selTienda.onchange = () => {
+                const vistaActiva = document.querySelector('.content-view[style="display: block;"]')?.id;
+                if (vistaActiva === 'view-home') cargarPanel();
+                if (vistaActiva === 'view-indicadores') cargarIndicadores();
+                if (vistaActiva === 'view-canal') cargarCanal();
+                if (vistaActiva === 'view-auditorias') cargarAuditorias();
+            };
+        }
+        construirMenu();
+        showTab('home', null);
+    } else {
+        alert("Usuario o contraseña incorrectos");
+    }
+};
+
+// Recargar datos al iniciar
+cargarDatos();
